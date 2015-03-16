@@ -1,4 +1,4 @@
-(ns liberator-service.handler
+(ns shartfinder-web.handler
   (:use ring.middleware.cors)
   (:require [compojure.core :refer [defroutes routes]]
             [ring.middleware.resource :refer [wrap-resource]]
@@ -6,7 +6,7 @@
             [hiccup.middleware :refer [wrap-base-url]]
             [compojure.handler :as handler]
             [compojure.route :as route]
-            [liberator-service.routes.home :refer [home-routes ws-routes]]
+            [shartfinder-web.routes.home :refer [home-routes ws-routes]]
             [ring.middleware.reload :as reload]))
 
 (defroutes app-routes

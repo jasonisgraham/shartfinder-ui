@@ -1,7 +1,7 @@
-(ns liberator-service.test.handler
+(ns shartfinder-web.test.handler
   (:use clojure.test
         ring.mock.request
-        liberator-service.handler))
+        shartfinder-web.handler))
 
 (deftest test-app
   (testing "main route"

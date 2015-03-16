@@ -1,9 +1,9 @@
-(ns liberator-service.core
+(ns shartfinder-web.core
   (:require [org.httpkit.server :as server]
             [ring.middleware.reload :as reload]
             [compojure.handler :as compojure-handler]
             [ring.middleware.defaults :as defaults]
-            [liberator-service.handler :refer [ app ]])
+            [shartfinder-web.handler :refer [ app ]])
   (:use [ring.middleware file-info file]))
 
 

@@ -1,11 +1,11 @@
-(ns liberator-service.views.layout
+(ns shartfinder-web.views.layout
   (:require [hiccup.page :refer [html5 include-css include-js]]))
 
 (defn common [& body]
   (html5
    [:head
     [:title "Liberator Example"]
-    (include-js "//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js")
+    (include-js "https://code.jquery.com/jquery-2.1.3.js")
     (include-js "/js/home.js")
     (include-css "/css/screen.css")]
    [:body body]))

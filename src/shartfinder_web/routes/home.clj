@@ -1,11 +1,11 @@
-(ns liberator-service.routes.home
+(ns shartfinder-web.routes.home
   (:require [compojure.core :refer [defroutes ANY GET]]
-            [liberator-service.views.layout :as layout]
+            [shartfinder-web.views.layout :as layout]
             [liberator.core :refer [defresource resource request-method-in]]
             [cheshire.core :refer [generate-string]]
             [ring.middleware.anti-forgery :refer :all]
             [org.httpkit.server :as server]
-            [liberator-service.models.db :as db]))
+            [shartfinder-web.models.db :as db]))
 
 (def users (atom (db/get-all-users)))
 
@@ -25,9 +25,11 @@
 
 (defresource add-user
   :allowed-methods [:post]
-  :post! (fn [context] (let [params (get-in context [:request :form-params])]
-                         (swap! users conj {:name (get params "user")
-                                            :pass (get params "password")})))
+  :post! (fn [context] (let [params (get-in context [:request :form-params])
+                             new-user {:name (get params "user")
+                                       :pass (get params "password")}]
+                         (swap! users conj new-user)
+                         (db/add-user new-user)))
   :handle-created (do
                     (doseq [client @clients]
                       (server/send! (key client) (generate-string (map :name @users)) false))

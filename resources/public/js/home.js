@@ -1,15 +1,17 @@
 var data = [], timestamps = [];
-var socket = new WebSocket("ws://localhost:8080/happiness");
+var socket = new WebSocket("ws://128.237.162.79:8080/happiness");
 
 socket.onmessage = function(event) {
-  getUsers();
+  renderUsers(JSON.parse(event.data));
 }
 
 function renderUsers(users) {
   $('#user-list').empty();
-  $.each(users, function(idx,user_name) {
-    $('#user-list').append('<li>'+user_name+'</li>');
+
+  users.forEach(function(user) {
+    $('#user-list').append('<li>'+user+'</li>');
   });
+
   $('#name').val('');
   $('#password').val('');
   $('#password-confirm').val('');
@@ -24,10 +26,11 @@ function handleError(xhr) {
 }
 
 function addUser() {
-  var jqxhr = $.post("/add-user", { user: $('#name').val(),
-                                    password: $('#password').val(),
-                                    password_confirm: $('#password-confirm').val()
-                                  }, renderUsers)
+  var jqxhr = $.post("/add-user",
+                     { user: $('#name').val(),
+                       password: $('#password').val(),
+                       password_confirm: $('#password-confirm').val()
+                     }, renderUsers)
     .fail(handleError);
 }
 

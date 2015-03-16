@@ -1,4 +1,4 @@
-(ns liberator-service.models.db
+(ns shartfinder-web.models.db
   (:require [clojure.java.jdbc :as sql]))
 
 (let [db-host "localhost"
