@@ -35,12 +35,17 @@ function addUser() {
 }
 
 function rollInitiative() {
-  var initiativeRolledData = { data: { user: $('#user-id').val(),
-                                       combatantName: $('#combatant-name').val(),
-                                       diceRoll: $('#dice-roll').val() },
+  var user = $('#user-id').val(),
+      combatantName = $('#combatant-name').val(),
+      diceRoll = $('#dice-roll').val();
+  var initiativeRolledData = { data: { user: user,
+                                       combatantName: combatantName,
+                                       diceRoll: diceRoll},
                                resource: "roll-initiative" };
   var initiativeRolledDataString = JSON.stringify(initiativeRolledData);
   socket.send(initiativeRolledDataString);
+
+  $('#initiative-rolls').append('<li>' + user + ' rolled a ' + diceRoll + ' for ' + combatantName + '</li>');
 }
 
 $(function() {

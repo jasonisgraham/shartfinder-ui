@@ -12,7 +12,8 @@
 
 (defn roll-initiative []
   (html5 [:h1 "Roll Initiative"]
-         [:p {:id "initiative-message}"}]
+         [:p {:id "initiative-message"}]
+         [:ul {:id "initiative-rolls"}]
          [:input {:type "text" :id "user-id" :placeholder "user id"}]
          [:input {:type "text" :id "combatant-name" :placeholder "combatant name"}]
          [:input {:type "number" :id "dice-roll" :placeholder "dice roll"}]
