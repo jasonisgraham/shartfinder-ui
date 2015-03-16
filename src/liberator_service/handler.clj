@@ -9,12 +9,6 @@
             [liberator-service.routes.home :refer [home-routes ws-routes]]
             [ring.middleware.reload :as reload]))
 
-(defn init []
-  (println "liberator-service is starting"))
-
-(defn destroy []
-  (println "liberator-service is shutting down"))
-
 (defroutes app-routes
   (route/resources "/")
   (route/not-found "Not Found"))

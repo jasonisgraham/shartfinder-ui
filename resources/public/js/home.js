@@ -7,10 +7,12 @@ socket.onmessage = function(event) {
 
 function renderUsers(users) {
   $('#user-list').empty();
-  $.each(users, function(idx,user) {
-    $('#user-list').append('<li>'+user+'</li>');
+  $.each(users, function(idx,user_name) {
+    $('#user-list').append('<li>'+user_name+'</li>');
   });
   $('#name').val('');
+  $('#password').val('');
+  $('#password-confirm').val('');
 }
 
 function getUsers() {
@@ -22,7 +24,10 @@ function handleError(xhr) {
 }
 
 function addUser() {
-  var jqxhr = $.post("/add-user", { user: $('#name').val() }, renderUsers)
+  var jqxhr = $.post("/add-user", { user: $('#name').val(),
+                                    password: $('#password').val(),
+                                    password_confirm: $('#password-confirm').val()
+                                  }, renderUsers)
     .fail(handleError);
 }
 

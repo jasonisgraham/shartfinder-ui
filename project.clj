@@ -11,7 +11,7 @@
                  [ring/ring-anti-forgery "1.0.0"]
                  [ring-cors "0.1.6"]
                  [org.clojure/java.jdbc "0.3.6"]
-                 [postgresql/postgresql "8.4-702.jdbc4"]]
+                 [postgresql/postgresql "9.3-1102.jdbc41"]]
 
   :plugins [[lein-ring "0.8.12"]]
 

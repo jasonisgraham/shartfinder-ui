@@ -3,7 +3,7 @@
             [ring.middleware.reload :as reload]
             [compojure.handler :as compojure-handler]
             [ring.middleware.defaults :as defaults]
-            [liberator-service.handler :refer [ app init destroy ]])
+            [liberator-service.handler :refer [ app ]])
   (:use [ring.middleware file-info file]))
 
 

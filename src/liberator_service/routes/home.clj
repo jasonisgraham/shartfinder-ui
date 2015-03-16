@@ -4,9 +4,10 @@
             [liberator.core :refer [defresource resource request-method-in]]
             [cheshire.core :refer [generate-string]]
             [ring.middleware.anti-forgery :refer :all]
-            [org.httpkit.server :as server]))
+            [org.httpkit.server :as server]
+            [liberator-service.models.db :as db]))
 
-(def users (atom ["Jaymang" "Dogman"]))
+(def users (atom (db/get-all-users)))
 
 (def clients (atom {}))
 (defn ws [request]
@@ -19,22 +20,27 @@
 
 (defresource get-users
   :allowed-methods [:get]
-  :handle-ok (generate-string @users)
+  :handle-ok (generate-string (map :name @users))
   :available-media-types ["application/json"])
 
 (defresource add-user
   :allowed-methods [:post]
   :post! (fn [context] (let [params (get-in context [:request :form-params])]
-                         (swap! users conj (get params "user"))))
+                         (swap! users conj {:name (get params "user")
+                                            :pass (get params "password")})))
   :handle-created (do
                     (doseq [client @clients]
-                      (server/send! (key client) (generate-string @users) false))
-                    (fn [_] (generate-string @users)))
+                      (server/send! (key client) (generate-string (map :name @users)) false))
+                    (fn [_] (generate-string (map :name @users))))
 
 
   :malformed? (fn [context] (let [params (get-in context [:request :form-params])]
-                              (empty? (get params "user"))))
-  :handle-malformed "user name cannot be empty!"
+                              (or
+                               (empty? (get params "user"))
+                               (empty? (get params "password"))
+                               (empty? (get params "password_confirm"))
+                               (not= (get params "password") (get params "password_confirm")))))
+  :handle-malformed "user name and password must be filled in and password must match"
   :available-media-types ["application/json"])
 
 (defresource home
