@@ -1,3 +1,10 @@
+var data = [], timestamps = [];
+var socket = new WebSocket("ws://localhost:8080/happiness");
+
+socket.onmessage = function(event) {
+  getUsers();
+}
+
 function renderUsers(users) {
   $('#user-list').empty();
   $.each(users, function(idx,user) {

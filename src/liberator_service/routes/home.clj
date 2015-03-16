@@ -3,9 +3,19 @@
             [liberator-service.views.layout :as layout]
             [liberator.core :refer [defresource resource request-method-in]]
             [clojure.data.json :as json]
-            [ring.middleware.anti-forgery :refer :all]))
+            [ring.middleware.anti-forgery :refer :all]
+            [org.httpkit.server :as server]))
 
 (def users (atom ["Jaymang" "Dogman"]))
+
+(def clients (atom {}))
+(defn ws [request]
+  (server/with-channel request con
+    (swap! clients assoc con true)
+    (println con " connected")
+    (server/on-close con (fn [status]
+                           (swap! clients dissoc con)
+                           (println con " disconnected. status: " status)))))
 
 (defresource get-users
   :allowed-methods [:get]
@@ -16,10 +26,14 @@
   :allowed-methods [:post]
   :post! (fn [context] (let [params (get-in context [:request :form-params])]
                          (swap! users conj (get params "user"))))
-  :handle-created (fn [_]  (json/write-str @users))
+  :handle-created (do
+                    (doseq [client @clients]
+                      (server/send! (key client) (json/write-str @users) false))
+                    (fn [_] (json/write-str @users)))
+
 
   :malformed? (fn [context] (let [params (get-in context [:request :form-params])]
-                         (empty? (get params "user"))))
+                              (empty? (get params "user"))))
   :handle-malformed "user name cannot be empty!"
   :available-media-types ["application/json"])
 
@@ -31,7 +45,11 @@
   :etag "fixed-etag"
   :available-media-types ["text/html"])
 
+
 (defroutes home-routes
   (ANY "/" request home)
   (ANY "/add-user" request add-user)
   (ANY "/users" request get-users))
+
+(defroutes ws-routes
+  (GET "/happiness" [] ws))

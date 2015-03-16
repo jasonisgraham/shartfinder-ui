@@ -1,11 +1,13 @@
 (ns liberator-service.handler
+  (:use ring.middleware.cors)
   (:require [compojure.core :refer [defroutes routes]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.file-info :refer [wrap-file-info]]
             [hiccup.middleware :refer [wrap-base-url]]
             [compojure.handler :as handler]
             [compojure.route :as route]
-            [liberator-service.routes.home :refer [home-routes]]))
+            [liberator-service.routes.home :refer [home-routes ws-routes]]
+            [ring.middleware.reload :as reload]))
 
 (defn init []
   (println "liberator-service is starting"))
@@ -17,18 +19,7 @@
   (route/resources "/")
   (route/not-found "Not Found"))
 
-;; (def custom-error-response
-;;   {:status 403
-;;    :headers {"Content-Type" "text/html"}
-;;    :body "<h1>Missing anti-forgery tokenYo</h1>"})
-
 (def app
-  (-> (routes home-routes app-routes)
-      (handler/site)
-      (wrap-base-url)))
-
-;; (def app
-;;   (-> (routes home-routes app-routes)
-;;       (handler/site)
-;;       (wrap-anti-forgery {:error-response custom-error-response})
-;;       (wrap-base-url)))
+  (-> (routes ws-routes home-routes app-routes)
+      reload/wrap-reload
+      (handler/site)))
