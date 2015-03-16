@@ -34,6 +34,15 @@ function addUser() {
     .fail(handleError);
 }
 
+function rollInitiative() {
+  var jqxhr = $.post("/roll-initiative",
+                    { user: $('#user-id').val(),
+                      combatantName: $('#combatant-name').val(),
+                      diceRoll: $('#dice-roll').val()
+                    }, function(xhr) { $('#initiative-message').text('rolled a: ' + xhr)})
+  .fail(function(xhr) { $('#initiative-message').text(xhr.statusText + ": " + xhr.responseText) });
+}
+
 $(function() {
   getUsers();
 });

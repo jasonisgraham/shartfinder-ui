@@ -10,6 +10,15 @@
     (include-css "/css/screen.css")]
    [:body body]))
 
+(defn roll-initiative []
+  (html5 [:h1 "Roll Initiative"]
+         [:p {:id "initiative-message}"}]
+         [:input {:type "text" :id "user-id" :placeholder "user id"}]
+         [:input {:type "text" :id "combatant-name" :placeholder "combatant name"}]
+         [:input {:type "number" :id "dice-roll" :placeholder "dice roll"}]
+         [:br]
+         [:button {:onclick "rollInitiative()"} "Roll Initiative"]))
+
 (defn main []
   (common
    (html5 [:h1 "Current Users"]
@@ -21,4 +30,6 @@
           [:br]
           [:input {:type "password", :id "password-confirm", :placeholder "re-enter password"}]
           [:br]
-          [:button {:onclick "addUser()"} "Add User"])))
+          [:button {:onclick "addUser()"} "Add User"]
+          [:br] [:br]
+          (roll-initiative))))

@@ -5,7 +5,25 @@
             [cheshire.core :refer [generate-string]]
             [ring.middleware.anti-forgery :refer :all]
             [org.httpkit.server :as server]
-            [shartfinder-web.models.db :as db]))
+            [shartfinder-web.models.db :as db]
+            [taoensso.carmine :as car :refer (wcar)]
+            [clj-http.client :as client]))
+
+(def server-connection {:pool {}
+                        :spec {:host "pub-redis-18240.us-east-1-3.1.ec2.garantiadata.com"
+                               :port 18240
+                               :password "abc123"}})
+
+(def ^:private service-urls {:combatant "https://secure-beach-3319.herokuapp.com/"
+                             :initiative ""})
+
+(def ^:private channels {:encounter-created "encounter-created"
+                         :initiative-rolled "roll-initiative"
+                         :initiative-created "initiative-created"
+                         :error "error"})
+
+(defmacro wcar* [& body]
+  `(car/wcar server-connection ~@body))
 
 (def users (atom (db/get-all-users)))
 
@@ -53,9 +71,24 @@
   :etag "fixed-etag"
   :available-media-types ["text/html"])
 
+(defresource roll-initiative
+  :service-available? true
+  :handle-service-not-available "service not available, yo!"
+  :allowed-methods [:post]
+  :malformed? (fn [context]
+                (println "context: " context)
+                (let [params (get-in context [:request :form-params])]
+                  (empty? (get params "diceRoll"))))
+  :handle-malformed "somethin wrong"
+  :post! (fn [context] (let [params (get-in context [:request :form-params])
+                             dice-roll-value (get params "diceRoll")]
+                         (wcar* (car/publish (:initiative-rolled channels) (generate-string {:dice-roll dice-roll-value})))))
+  :available-media-types ["application/json"])
+
 
 (defroutes home-routes
   (ANY "/" request home)
+  (ANY "/roll-initiative" request roll-initiative)
   (ANY "/add-user" request add-user)
   (ANY "/users" request get-users))
 
