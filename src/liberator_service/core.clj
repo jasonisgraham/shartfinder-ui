@@ -25,7 +25,7 @@
 (defn stop-server []
   (when-not (nil? @server)
     (@server :timeout 100)
-    (reset! server nil))        )
+    (reset! server nil)))
 
 (defn -main [& args]
   (start-server args))

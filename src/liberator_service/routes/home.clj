@@ -2,7 +2,7 @@
   (:require [compojure.core :refer [defroutes ANY GET]]
             [liberator-service.views.layout :as layout]
             [liberator.core :refer [defresource resource request-method-in]]
-            [clojure.data.json :as json]
+            [cheshire.core :refer [generate-string]]
             [ring.middleware.anti-forgery :refer :all]
             [org.httpkit.server :as server]))
 
@@ -19,7 +19,7 @@
 
 (defresource get-users
   :allowed-methods [:get]
-  :handle-ok (json/write-str @users)
+  :handle-ok (generate-string @users)
   :available-media-types ["application/json"])
 
 (defresource add-user
@@ -28,8 +28,8 @@
                          (swap! users conj (get params "user"))))
   :handle-created (do
                     (doseq [client @clients]
-                      (server/send! (key client) (json/write-str @users) false))
-                    (fn [_] (json/write-str @users)))
+                      (server/send! (key client) (generate-string @users) false))
+                    (fn [_] (generate-string @users)))
 
 
   :malformed? (fn [context] (let [params (get-in context [:request :form-params])]

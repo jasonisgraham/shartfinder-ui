@@ -16,5 +16,4 @@
           [:p {:id "error"}]
           [:ul {:id "user-list"}]
           [:input {:type "text", :id "name", :placeholder "user name"}]
-          [:button {:onclick "addUser()"} "Add User"]
-          )))
+          [:button {:onclick "addUser()"} "Add User"])))

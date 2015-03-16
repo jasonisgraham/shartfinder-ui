@@ -10,14 +10,10 @@
                  [http-kit "2.1.18"]
                  [ring/ring-anti-forgery "1.0.0"]
                  [ring-cors "0.1.6"]
-                 [org.clojure/data.json "0.2.6"]]
+                 [org.clojure/java.jdbc "0.3.6"]
+                 [postgresql/postgresql "8.4-702.jdbc4"]]
 
   :plugins [[lein-ring "0.8.12"]]
-
-  ;; start with "lein ring server"
-  :ring {:handler liberator-service.handler/app
-         :init liberator-service.handler/init
-         :destroy liberator-service.handler/destroy}
 
   :main liberator-service.core
 

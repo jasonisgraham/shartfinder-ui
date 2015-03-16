@@ -10,6 +10,7 @@ function renderUsers(users) {
   $.each(users, function(idx,user) {
     $('#user-list').append('<li>'+user+'</li>');
   });
+  $('#name').val('');
 }
 
 function getUsers() {
