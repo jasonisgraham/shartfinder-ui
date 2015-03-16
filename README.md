@@ -1,4 +1,4 @@
-# shartfinder-web
+# shartfinder-ui
 
 FIXME
 
