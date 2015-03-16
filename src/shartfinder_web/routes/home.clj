@@ -2,7 +2,7 @@
   (:require [compojure.core :refer [defroutes ANY GET]]
             [shartfinder-web.views.layout :as layout]
             [liberator.core :refer [defresource resource request-method-in]]
-            [cheshire.core :refer [generate-string]]
+            [cheshire.core :refer [generate-string parse-string]]
             [ring.middleware.anti-forgery :refer :all]
             [org.httpkit.server :as server]
             [shartfinder-web.models.db :as db]
@@ -32,6 +32,16 @@
   (server/with-channel request con
     (swap! clients assoc con true)
     (println con " connected")
+    (server/on-receive con
+                       (fn [context-str]
+                         (let [context (parse-string context-str)
+                               resource (context "resource")]
+                           (cond
+                             (= "roll-initiative" resource) (let [dice-roll-value (get-in context ["data" "diceRoll"])]
+                                                              (wcar* (car/publish (:initiative-rolled channels)
+                                                                                  (generate-string {:dice-roll dice-roll-value}))))
+                             :else (println "not found")))))
+
     (server/on-close con (fn [status]
                            (swap! clients dissoc con)
                            (println con " disconnected. status: " status)))))
@@ -71,26 +81,10 @@
   :etag "fixed-etag"
   :available-media-types ["text/html"])
 
-(defresource roll-initiative
-  :service-available? true
-  :handle-service-not-available "service not available, yo!"
-  :allowed-methods [:post]
-  :malformed? (fn [context]
-                (println "context: " context)
-                (let [params (get-in context [:request :form-params])]
-                  (empty? (get params "diceRoll"))))
-  :handle-malformed "somethin wrong"
-  :post! (fn [context] (let [params (get-in context [:request :form-params])
-                             dice-roll-value (get params "diceRoll")]
-                         (wcar* (car/publish (:initiative-rolled channels) (generate-string {:dice-roll dice-roll-value})))))
-  :available-media-types ["application/json"])
-
-
 (defroutes home-routes
   (ANY "/" request home)
-  (ANY "/roll-initiative" request roll-initiative)
   (ANY "/add-user" request add-user)
   (ANY "/users" request get-users))
 
 (defroutes ws-routes
-  (GET "/happiness" [] ws))
+  (GET "/ws" [] ws))

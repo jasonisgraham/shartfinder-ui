@@ -1,5 +1,5 @@
 var data = [], timestamps = [];
-var socket = new WebSocket("ws://128.237.162.79:8080/happiness");
+var socket = new WebSocket("ws://128.237.162.79:8080/ws");
 
 socket.onmessage = function(event) {
   renderUsers(JSON.parse(event.data));
@@ -35,12 +35,12 @@ function addUser() {
 }
 
 function rollInitiative() {
-  var jqxhr = $.post("/roll-initiative",
-                    { user: $('#user-id').val(),
-                      combatantName: $('#combatant-name').val(),
-                      diceRoll: $('#dice-roll').val()
-                    }, function(xhr) { $('#initiative-message').text('rolled a: ' + xhr)})
-  .fail(function(xhr) { $('#initiative-message').text(xhr.statusText + ": " + xhr.responseText) });
+  var initiativeRolledData = { data: { user: $('#user-id').val(),
+                                       combatantName: $('#combatant-name').val(),
+                                       diceRoll: $('#dice-roll').val() },
+                               resource: "roll-initiative" };
+  var initiativeRolledDataString = JSON.stringify(initiativeRolledData);
+  socket.send(initiativeRolledDataString);
 }
 
 $(function() {
