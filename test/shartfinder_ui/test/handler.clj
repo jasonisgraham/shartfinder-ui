@@ -1,7 +1,7 @@
-(ns shartfinder-web.test.handler
+(ns shartfinder-ui.test.handler
   (:use clojure.test
         ring.mock.request
-        shartfinder-web.handler))
+        shartfinder-ui.handler))
 
 (deftest test-app
   (testing "main route"

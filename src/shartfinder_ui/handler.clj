@@ -1,4 +1,4 @@
-(ns shartfinder-web.handler
+(ns shartfinder-ui.handler
   (:use ring.middleware.cors)
   (:require [compojure.core :refer [defroutes routes]]
             [ring.middleware.resource :refer [wrap-resource]]
@@ -6,7 +6,7 @@
             [hiccup.middleware :refer [wrap-base-url]]
             [compojure.handler :as handler]
             [compojure.route :as route]
-            [shartfinder-web.routes.home :refer [home-routes ws-routes]]
+            [shartfinder-ui.routes.home :refer [home-routes ws-routes]]
             [ring.middleware.reload :as reload]))
 
 (defroutes app-routes

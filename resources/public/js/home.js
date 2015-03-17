@@ -1,5 +1,5 @@
 var data = [], timestamps = [];
-var socket = new WebSocket("ws://128.237.162.79:8080/ws");
+var socket = new WebSocket("ws://192.168.1.107:8080/ws");
 
 socket.onmessage = function(event) {
   renderUsers(JSON.parse(event.data));

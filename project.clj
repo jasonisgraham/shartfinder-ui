@@ -1,4 +1,4 @@
-(defproject shartfinder-web "0.1.0-SNAPSHOT"
+(defproject shartfinder-ui "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :dependencies [[org.clojure/clojure "1.6.0"]
@@ -17,7 +17,7 @@
 
   :plugins [[lein-ring "0.8.12"]]
 
-  :main shartfinder-web.core
+  :main shartfinder-ui.core
 
   :profiles {:uberjar {:aot :all}
              :production {:ring
