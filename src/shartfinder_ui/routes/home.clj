@@ -30,9 +30,20 @@
 (def clients (atom {}))
 
 (defn- handle-roll-initiative [context]
-  (let [dice-roll-value (get-in context ["data" "diceRoll"])]
-    (wcar* (car/publish (:initiative-rolled channels)
-                        (generate-string {:dice-roll dice-roll-value})))))
+  (let [dice-roll-value (get-in context ["data" "diceRoll"])
+        combatant-name (get-in context ["data" "combatantName"])
+        user (get-in context ["data" "user"])]
+    (doseq [client @clients]
+      (server/send! (key client)
+                    (generate-string {:event-name "roll-initiative" :payload {:diceRoll dice-roll-value
+                                                                              :combatantName combatant-name
+                                                                              :user user}})
+                    false))
+    ;; (wcar* (car/publish (:initiative-rolled channels)
+    ;;                     (generate-string {:dice-roll dice-roll-value})))
+    ))
+
+(defn- handle-add-combatant [context])
 
 (defn ws [request]
   (server/with-channel request con
@@ -44,6 +55,7 @@
                                resource (context "resource")]
                            (cond
                              (= "roll-initiative" resource) (handle-roll-initiative context)
+                             (= "add-combatant" resource) (handle-add-combatant context)
                              :else (println "not found")))))
 
     (server/on-close con (fn [status]
@@ -64,7 +76,7 @@
                                                  (swap! users conj new-user)
                                                  (doseq [client @clients]
                                                    (server/send! (key client)
-                                                                 (generate-string (map :name @users))
+                                                                 (generate-string {:event-name "add-user" :payload (map :name @users)})
                                                                  false)))))
 
   :handle-created (fn [_] (generate-string (map :name @users)))
