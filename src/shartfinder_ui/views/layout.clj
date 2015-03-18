@@ -13,7 +13,7 @@
    [:body body]))
 
 (defn roll-initiative []
-  (html5 [:h1 "Roll Initiative" " (async + websockets) "]
+  (html5 [:h1 "Roll Initiative"]
          [:p {:id "initiative-message"}]
          [:ul {:id "initiative-rolls"}]
          [:input {:type "text" :id "initiative_user" :placeholder "user id"}]

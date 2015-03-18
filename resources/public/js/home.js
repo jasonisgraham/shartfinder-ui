@@ -2,7 +2,6 @@ var data = [], timestamps = [];
 var socket = new WebSocket("ws://"+window.location.hostname+":8080/ws");
 
 socket.onmessage = function(event) {
-  // getUsers();
   var data = JSON.parse(event.data);
   var eventName = data["event-name"];
   var payload = data["payload"];
@@ -14,6 +13,10 @@ socket.onmessage = function(event) {
   if ("roll-initiative" == eventName) {
     renderInitiative(payload);
   }
+  if ("add-combatant" == eventName) {
+    renderCombatant(payload);
+  }
+
 }
 
 function clearInputs() {
@@ -54,19 +57,24 @@ function addUser() {
       .fail(handleError);
 }
 
-// function addCombatant() {
-//   var user = $('#combatants_user').val(),
-//       combatantName = $('#combatants_combatant-name').val(),
-//       maxHP = $('#combatants_max-hp').val();
-//   var combatantData = { data: { user: user,
-//                                 combatantName: combatantName,
-//                                 maxHP : maxHP },
-//                         resource: "add-combatant" };
-//   var combatantDataString = JSON.stringify(combatantDataString);
-//   socket.send(combatantDataString);
+function addCombatant() {
+  var user = $('#combatants_user').val(),
+      combatantName = $('#combatants_combatant-name').val(),
+      maxHP = $('#combatants_max-hp').val();
+  var combatantData = { data: { user: user,
+                                combatantName: combatantName,
+                                maxHP : maxHP },
+                        resource: "add-combatant" };
+  var combatantDataString = JSON.stringify(combatantData);
+  socket.send(combatantDataString);
+}
 
-//   $('#combatant-list').append('<li>' + combatantName + ' here has max hp of ' + maxHP + '</li>');
-// }
+function renderCombatant(combatantData) {
+  var combatantName = combatantData.combatantName,
+      user = combatantData.user,
+      maxHP = combatantData.maxHP;
+  $('#combatant-list').append('<li>' + combatantName + ' here has max hp of ' + maxHP + '</li>');
+}
 
 function rollInitiative() {
   var user = $('#initiative_user').val(),
@@ -85,7 +93,7 @@ function renderInitiative(initiativeData) {
   var user = initiativeData.user,
       diceRoll = initiativeData.diceRoll,
       combatantName = initiativeData.combatantName;
-    $('#initiative-rolls').append('<li>' + user + ' rolled a ' + diceRoll + ' for ' + combatantName + '</li>');
+  $('#initiative-rolls').append('<li>' + user + ' rolled a ' + diceRoll + ' for ' + combatantName + '</li>');
 }
 
 $(function() {

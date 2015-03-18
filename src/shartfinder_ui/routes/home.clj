@@ -43,7 +43,16 @@
     ;;                     (generate-string {:dice-roll dice-roll-value})))
     ))
 
-(defn- handle-add-combatant [context])
+(defn- handle-add-combatant [context]
+  (let [max-hp (get-in context ["data" "maxHP"])
+        combatant-name (get-in context ["data" "combatantName"])
+        user (get-in context ["data" "user"])]
+    (doseq [client @clients]
+      (server/send! (key client)
+                    (generate-string {:event-name "add-combatant" :payload {:maxHP max-hp
+                                                                            :combatantName combatant-name
+                                                                            :user user}})
+                    false))))
 
 (defn ws [request]
   (server/with-channel request con
@@ -53,6 +62,7 @@
                        (fn [context-str]
                          (let [context (parse-string context-str)
                                resource (context "resource")]
+                           (println "here, resource: " + resource)
                            (cond
                              (= "roll-initiative" resource) (handle-roll-initiative context)
                              (= "add-combatant" resource) (handle-add-combatant context)
