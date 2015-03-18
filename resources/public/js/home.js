@@ -16,6 +16,9 @@ socket.onmessage = function(event) {
   if ("add-combatant" == eventName) {
     renderCombatant(payload);
   }
+  if ("start-encounter" == eventName) {
+    renderStartEncounter(payload);
+  }
 
 }
 
@@ -27,12 +30,10 @@ function clearInputs() {
 
 function renderUsers(users) {
   $('#user-list').empty();
-  console.log("users: " + users);
 
   users.forEach(function(user) {
     $('#user-list').append('<li>'+user+'</li>');
   });
-  clearInputs();
 }
 
 function resetUsers() {
@@ -55,6 +56,7 @@ function addUser() {
                        password_confirm: $('#password-confirm').val()
                      }, renderUsers)
       .fail(handleError);
+  clearInputs();
 }
 
 function addCombatant() {
@@ -67,9 +69,14 @@ function addCombatant() {
                         resource: "add-combatant" };
   var combatantDataString = JSON.stringify(combatantData);
   socket.send(combatantDataString);
+
+  $('#combatants_user').val('');
+  $('#combatants_combatant-name').val('');
+  $('#combatants_max-hp').val('');
 }
 
 function renderCombatant(combatantData) {
+
   var combatantName = combatantData.combatantName,
       user = combatantData.user,
       maxHP = combatantData.maxHP;
@@ -94,6 +101,28 @@ function renderInitiative(initiativeData) {
       diceRoll = initiativeData.diceRoll,
       combatantName = initiativeData.combatantName;
   $('#initiative-rolls').append('<li>' + user + ' rolled a ' + diceRoll + ' for ' + combatantName + '</li>');
+
+  $('#combatant-wait-list-ul > li').filter(function() {
+    return $(this).text() === combatantName;
+  }).removeClass('combatant-waiting').addClass('combatant-ready');
+
+}
+
+function startEncounter() {
+  socket.send(JSON.stringify( { resource: "start-encounter" }));
+}
+
+function renderStartEncounter(startEncounterData) {
+  $("#add-combatant-button").prop("disabled",true);
+  $("#start-encounter-button").prop("disabled",true);
+  $("#roll-initiative-div").show();
+
+  var combatantNames = startEncounterData.combatantNames;
+  $('#combatant-wait-list-ul').empty();
+
+  combatantNames.forEach(function(combatantName) {
+    $('#combatant-wait-list-ul').append('<li class="combatant-waiting">'+combatantName+'</li>');
+  });
 }
 
 $(function() {

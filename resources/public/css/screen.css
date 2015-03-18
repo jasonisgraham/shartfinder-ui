@@ -8,3 +8,9 @@ h1 {
     text-align: center;
 }
 
+.combatant-waiting {
+    color:red;
+}
+.combatant-ready {
+    color:green;
+}

@@ -29,30 +29,43 @@
 
 (def clients (atom {}))
 
+(def combatants (atom #{}))
+
 (defn- handle-roll-initiative [context]
   (let [dice-roll-value (get-in context ["data" "diceRoll"])
         combatant-name (get-in context ["data" "combatantName"])
         user (get-in context ["data" "user"])]
     (doseq [client @clients]
       (server/send! (key client)
-                    (generate-string {:event-name "roll-initiative" :payload {:diceRoll dice-roll-value
-                                                                              :combatantName combatant-name
-                                                                              :user user}})
+                    (generate-string {:event-name "roll-initiative"
+                                      :payload {:diceRoll dice-roll-value
+                                                :combatantName combatant-name
+                                                :user user}})
                     false))
-    ;; (wcar* (car/publish (:initiative-rolled channels)
-    ;;                     (generate-string {:dice-roll dice-roll-value})))
+    (wcar* (car/publish (:initiative-rolled channels)
+                        (generate-string {:dice-roll dice-roll-value})))
     ))
 
 (defn- handle-add-combatant [context]
   (let [max-hp (get-in context ["data" "maxHP"])
         combatant-name (get-in context ["data" "combatantName"])
         user (get-in context ["data" "user"])]
+    (swap! combatants conj combatant-name)
     (doseq [client @clients]
       (server/send! (key client)
-                    (generate-string {:event-name "add-combatant" :payload {:maxHP max-hp
-                                                                            :combatantName combatant-name
-                                                                            :user user}})
+                    (generate-string {:event-name "add-combatant"
+                                      :payload {:maxHP max-hp
+                                                :combatantName combatant-name
+                                                :user user}})
                     false))))
+
+(defn- handle-start-encounter [_]
+  (println "handling start encounter")
+  (doseq [client @clients]
+    (server/send! (key client)
+                  (generate-string {:event-name "start-encounter"
+                                    :payload {:combatantNames @combatants}})
+                  false)))
 
 (defn ws [request]
   (server/with-channel request con
@@ -62,10 +75,10 @@
                        (fn [context-str]
                          (let [context (parse-string context-str)
                                resource (context "resource")]
-                           (println "here, resource: " + resource)
                            (cond
                              (= "roll-initiative" resource) (handle-roll-initiative context)
                              (= "add-combatant" resource) (handle-add-combatant context)
+                             (= "start-encounter" resource) (handle-start-encounter context)
                              :else (println "not found")))))
 
     (server/on-close con (fn [status]
@@ -103,7 +116,9 @@
   :service-available? true
   :allowed-methods [:get]
   :handle-service-not-available "service not available, yo!"
-  :handle-ok (do (reset! users (db/get-all-users)) (layout/main))
+  :handle-ok (do (reset! users (db/get-all-users))
+                 (reset! combatants #{})
+                 (layout/main))
   :etag "fixed-etag"
   :available-media-types ["text/html"])
 
