@@ -2,11 +2,13 @@ var data = [], timestamps = [];
 var socket = new WebSocket("ws://"+window.location.hostname+":8080/ws");
 
 socket.onmessage = function(event) {
+  // getUsers();
   renderUsers(JSON.parse(event.data));
 }
 
 function renderUsers(users) {
   $('#user-list').empty();
+  console.log("users: " + users);
 
   users.forEach(function(user) {
     $('#user-list').append('<li>'+user+'</li>');

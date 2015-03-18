@@ -28,6 +28,12 @@
 (def users (atom (db/get-all-users)))
 
 (def clients (atom {}))
+
+(defn- handle-roll-initiative [context]
+  (let [dice-roll-value (get-in context ["data" "diceRoll"])]
+    (wcar* (car/publish (:initiative-rolled channels)
+                        (generate-string {:dice-roll dice-roll-value})))))
+
 (defn ws [request]
   (server/with-channel request con
     (swap! clients assoc con true)
@@ -37,9 +43,7 @@
                          (let [context (parse-string context-str)
                                resource (context "resource")]
                            (cond
-                             (= "roll-initiative" resource) (let [dice-roll-value (get-in context ["data" "diceRoll"])]
-                                                              (wcar* (car/publish (:initiative-rolled channels)
-                                                                                  (generate-string {:dice-roll dice-roll-value}))))
+                             (= "roll-initiative" resource) (handle-roll-initiative context)
                              :else (println "not found")))))
 
     (server/on-close con (fn [status]
@@ -48,26 +52,28 @@
 
 (defresource get-users
   :allowed-methods [:get]
-  :handle-ok (generate-string (map :name @users))
+  :handle-ok (fn [_] (generate-string (map :name @users)))
   :available-media-types ["application/json"])
 
 (defresource add-user
   :allowed-methods [:post]
-  :post! (fn [context] (let [params (get-in context [:request :form-params])
-                             new-user {:name (get params "user")
-                                       :pass (get params "password")}]
-                         (swap! users conj new-user)
-                         (db/add-user new-user)))
-  :handle-created (do
-                    (doseq [client @clients]
-                      (server/send! (key client) (generate-string (map :name @users)) false))
-                    (fn [_] (generate-string (map :name @users))))
+  :post! (fn [context] (do (println "in post") (let [params (get-in context [:request :form-params])
+                                                     new-user {:name (get params "user")
+                                                               :pass (get params "password")}]
+                                                 (db/add-user new-user)
+                                                 (swap! users conj new-user)
+                                                 (doseq [client @clients]
+                                                   (server/send! (key client)
+                                                                 (generate-string (map :name @users))
+                                                                 false)))))
 
+  :handle-created (fn [_] (generate-string (map :name @users)))
 
   :malformed? (fn [context] (let [params (get-in context [:request :form-params])]
                               (or
                                (empty? (get params "user"))
                                (not= (get params "password") (get params "password_confirm")))))
+
   :handle-malformed "user name and password must be filled in and password must match"
   :available-media-types ["application/json"])
 
@@ -75,7 +81,7 @@
   :service-available? true
   :allowed-methods [:get]
   :handle-service-not-available "service not available, yo!"
-  :handle-ok (layout/main)
+  :handle-ok (do (reset! users (db/get-all-users)) (layout/main))
   :etag "fixed-etag"
   :available-media-types ["text/html"])
 
