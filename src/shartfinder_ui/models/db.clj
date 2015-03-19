@@ -60,6 +60,10 @@
   (println "adding user " user)
   (sql/insert! db-spec :users (dissoc user :id)))
 
+(defn add-combatant [combatant]
+  (println "adding combatant: " combatant)
+  (sql/insert! db-spec :combatants (dissoc combatant :id)))
+
 (defn update-user [id-or-name things-to-update]
   (let [id (get-id id-or-name)]
     (sql/update! db-spec :users things-to-update ["id = ? " id])))
@@ -70,3 +74,6 @@
 
 (defn get-all-users []
   (sql/query db-spec ["select * from users"]))
+
+(defn get-all-combatants []
+  (sql/query db-spec ["select * from combatants"]))

@@ -12,7 +12,7 @@
     (include-css "/css/screen.css")]
    [:body body]))
 
-(defn users []
+(defn render-users []
   (html5 [:div {:id "users-div"}
           [:h1 "Users"]
           [:p {:id "error"}]
@@ -26,20 +26,19 @@
           [:button {:id "add-user-button" :onclick "addUser()"} "Add User"]
           [:button {:id "reset-users-button" :disabled true :onclick "resetUsers()"} "Reset Users"]]))
 
-(defn combatants []
+(defn render-combatants [users]
   (html5 [:div {:id "combatants-div"}
           [:h1 "Combatants"]
           [:ul {:id "combatant-list"}]
           [:input {:type "text" :id "combatants_combatant-name" :placeholder "combatant name"}]
           [:input {:type "number" :id "combatants_max-hp" :placeholder "max HP"}]
-          (let [users (db/get-all-users)]
-            [:select {:id "combatants_user"}
-             (html5 (select-options (map :name users)))])
+          [:select {:id "combatants_user"}
+           (html5 (select-options (map :name users)))]
           [:br]
           [:button {:id "add-combatant-button" :onclick "addCombatant()"} "Add Combatant"]
           [:button {:id "start-encounter-button" :onclick "startEncounter()"} "Start Encounter"]]))
 
-(defn roll-initiative []
+(defn render-roll-initiative [combatants]
   (html5 [:div {:id "roll-initiative-div", :style "display: none"}
           [:h1 "Roll Initiative"]
           [:p {:id "initiative-message"}]
@@ -48,19 +47,22 @@
            [:ul {:id "combatant-wait-list-ul"}]]
           [:ul {:id "initiative-rolls"}]
           [:input {:type "text" :id "initiative_user" :placeholder "user id"}]
-          [:input {:type "text" :id "combatant-name" :placeholder "combatant name"}]
+          [:select {:id "initiative_combatant-name"}
+           (html5 (select-options (map :name combatants)))]
           [:input {:type "number" :id "dice-roll" :placeholder "dice roll"}]
           [:br]
           [:button {:onclick "rollInitiative()"} "Roll Initiative"]]))
 
-(defn round []
+(defn render-round []
   (html5 [:div {:id "round-div" :style "display: none"}
           [:h1 "Round"]
           [:ul {:id "round-order"}]]))
 
-(defn main []
+(defn main [{combatants :combatants, users :users}]
   (common
-   (html5 (users)
-          (combatants)
-          (roll-initiative)
-          (round))))
+   (html5 (render-users )
+          (println "users: " users)
+          (println "combatants: " combatants)
+          (render-combatants @users)
+          (render-roll-initiative @combatants)
+          (render-round))))

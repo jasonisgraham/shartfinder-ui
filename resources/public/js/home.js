@@ -7,6 +7,7 @@ socket.onmessage = function(event) {
   var payload = data["payload"];
 
   console.log("eventName: " + eventName);
+  console.log("payload: " + JSON.stringify(payload));
   if ("add-user" == eventName) {
     renderUsers(payload);
   }
@@ -33,6 +34,7 @@ function renderUsers(users) {
 
   users.forEach(function(user) {
     $('#user-list').append('<li>'+user+'</li>');
+    $('#combatants_user').append($('<option>', {}).text(user));
   });
 }
 
@@ -81,11 +83,12 @@ function renderCombatant(combatantData) {
       user = combatantData.user,
       maxHP = combatantData.maxHP;
   $('#combatant-list').append('<li>' + combatantName + ' here has max hp of ' + maxHP + '</li>');
+  $('#initiative_combatant-name').append($('<option>', {}).text(combatantName));
 }
 
 function rollInitiative() {
   var user = $('#initiative_user').val(),
-      combatantName = $('#combatant-name').val(),
+      combatantName = $('#initiative_combatant-name').val(),
       diceRoll = $('#dice-roll').val();
   var initiativeRolledData = { data: { user: user,
                                        combatantName: combatantName,
@@ -113,8 +116,8 @@ function startEncounter() {
 }
 
 function renderStartEncounter(startEncounterData) {
-  $("#add-combatant-button").prop("disabled",true);
-  $("#start-encounter-button").prop("disabled",true);
+  // $("#add-combatant-button").prop("disabled",true);
+  // $("#start-encounter-button").prop("disabled",true);
   $("#roll-initiative-div").show();
 
   var combatantNames = startEncounterData.combatantNames;
