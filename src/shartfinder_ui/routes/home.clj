@@ -7,7 +7,9 @@
             [org.httpkit.server :as server]
             [shartfinder-ui.models.db :as db]
             [taoensso.carmine :as car :refer (wcar)]
-            [clj-http.client :as client]))
+            [clj-http.client :as client]
+            [clojure.java.io :refer [file]]
+            [noir.io :as io]))
 
 (def server-connection {:pool {}
                         :spec {:host "pub-redis-18240.us-east-1-3.1.ec2.garantiadata.com"
@@ -112,15 +114,32 @@
   :handle-malformed "user name and password must be filled in and password must match"
   :available-media-types ["application/json"])
 
+;; (defresource home
+;;   :service-available? true
+;;   :allowed-methods [:get]
+;;   :handle-service-not-available "service not available, yo!"
+;;   :handle-ok (do (reset! users (db/get-all-users))
+;;                  (reset! combatants #{})
+;;                  (layout/main))
+;;   :etag "fixed-etag"
+;;   :available-media-types ["text/html"])
+
+
 (defresource home
-  :service-available? true
-  :allowed-methods [:get]
-  :handle-service-not-available "service not available, yo!"
-  :handle-ok (do (reset! users (db/get-all-users))
-                 (reset! combatants #{})
-                 (layout/main))
-  :etag "fixed-etag"
-  :available-media-types ["text/html"])
+  :available-media-types ["text/html"]
+
+  :handle-ok (fn [{{{ resource :resource} :route-params } :request}]
+               (clojure.java.io/input-stream (io/get-resource "/home.html"))))
+;; (defresource home
+;;   :available-media-types [​"text/html"​]
+
+;;   :handle-ok (​fn​ [{{{resource :resource} :route-params} :request}]
+;;                  (do (reset! users (db/get-all-users))
+;;                      (reset! combatants #{}))
+;;                  (clojure.java.io/input-stream (io/get-resource ​"/home.html"​)))
+
+;;   :last-modified (​fn​ [{{{resource :resource} :route-params} :request}]
+;;                      (​.​lastModified (file (​str​ (io/resource-path) ​"/home.html"​)))))
 
 (defroutes home-routes
   (ANY "/" request home)

@@ -13,7 +13,8 @@
                  [org.clojure/java.jdbc "0.3.6"]
                  [postgresql/postgresql "9.3-1102.jdbc41"]
                  [com.taoensso/carmine "2.9.0"]
-                 [clj-http "1.0.1"]]
+                 [clj-http "1.0.1"]
+                 [lib-noir "0.9.5"]]
 
   :plugins [[lein-ring "0.8.12"]]
 
