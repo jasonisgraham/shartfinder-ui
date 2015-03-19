@@ -15,6 +15,7 @@
                                :port 18240
                                :password "abc123"}})
 
+(def ^:private encounter-id 69)
 (def ^:private service-urls {:combatant "https://secure-beach-3319.herokuapp.com/"
                              :initiative ""})
 
@@ -27,24 +28,29 @@
   `(car/wcar server-connection ~@body))
 
 (def users (atom (db/get-all-users)))
-
 (def clients (atom {}))
-
 (def combatants (atom #{}))
 
 (defn- handle-roll-initiative [context]
   (let [dice-roll-value (get-in context ["data" "diceRoll"])
         combatant-name (get-in context ["data" "combatantName"])
         user (get-in context ["data" "user"])]
-    (doseq [client @clients]
-      (server/send! (key client)
-                    (generate-string {:event-name "roll-initiative"
-                                      :payload {:diceRoll dice-roll-value
-                                                :combatantName combatant-name
-                                                :user user}})
-                    false))
-    (wcar* (car/publish (:initiative-rolled channels)
-                        (generate-string {:dice-roll dice-roll-value})))))
+
+    (let [payload {:diceRoll dice-roll-value
+                   :combatantName combatant-name
+                   :user user}]
+
+      (println "payload: " payload)
+
+      (wcar* (car/publish (:initiative-rolled channels)
+                          (generate-string payload)))
+
+      (doseq [client @clients]
+        (server/send! (key client)
+                      (generate-string {:event-name "roll-initiative"
+                                        :payload payload})
+                      false)))
+    ))
 
 (defn- handle-add-combatant [context]
   (let [max-hp (get-in context ["data" "maxHP"])
@@ -61,6 +67,11 @@
 
 (defn- handle-start-encounter [_]
   (println "handling start encounter")
+  (println "combatants:" @combatants)
+  (wcar* (car/publish (:encounter-created channels)
+                      (generate-string {:encounterId encounter-id
+                                        :combatants (map #(assoc {} :combatantName %) @combatants)})))
+
   (doseq [client @clients]
     (server/send! (key client)
                   (generate-string {:event-name "start-encounter"
@@ -120,16 +131,6 @@
                (do (reset! users (db/get-all-users))
                    (reset! combatants #{}))
                (clojure.java.io/input-stream (io/get-resource "/home.html"))))
-;; (defresource home
-;;   :available-media-types [​"text/html"​]
-
-;;   :handle-ok (​fn​ [{{{resource :resource} :route-params} :request}]
-;;                  (do (reset! users (db/get-all-users))
-;;                      (reset! combatants #{}))
-;;                  (clojure.java.io/input-stream (io/get-resource ​"/home.html"​)))
-
-;;   :last-modified (​fn​ [{{{resource :resource} :route-params} :request}]
-;;                      (​.​lastModified (file (​str​ (io/resource-path) ​"/home.html"​)))))
 
 (defroutes home-routes
   (ANY "/" request home)
@@ -138,3 +139,11 @@
 
 (defroutes ws-routes
   (GET "/ws" [] ws))
+
+;; (defonce listener
+;;   (car/with-new-pubsub-listener (:spec server-connection)
+;;     {(channels :initiative-created) (fn f1 [[type match  content-json :as payload]]
+;;                                      (when (instance? String  content-json)
+;;                                        (println )
+;;                                        (initialize-received-combatants (json/read-str content-json :key-fn keyword))))
+;;     (car/subscribe (channels :initiative-created))))
