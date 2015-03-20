@@ -74,6 +74,14 @@
                                     :payload combatant-payload})
                   false)))
 
+(defn- handle-initiative-created [initiative-created-payload]
+  (println "initiative-created-payload: " initiative-created-payload)
+  (doseq [client @clients]
+    (server/send! (key client)
+                  (generate-string {:event-name "initiative-created"
+                                    :payload initiative-created-payload})
+                  false)))
+
 (defn- handle-start-encounter [_]
   (println "handling start encounter")
   (println "combatants:" @combatants)
@@ -160,7 +168,9 @@
     {(:initiative-created channels) (fn f1 [[type match  content-json :as payload]]
                                       (when (instance? String  content-json)
                                         (let [content (parse-string content-json true)]
-                                          (println "content: " content))))
+                                          (println "content: " content)
+                                          (handle-initiative-created content))))
+
      ;; TODO this is subscribing to unaltered message published by itself
      (:combatant-add-request channels) (fn f1 [[type match  content-json :as payload]]
                                          (when (instance? String  content-json)
@@ -172,6 +182,7 @@
                                              (when (instance? String  content-json)
                                                (let [content (parse-string content-json true)]
                                                  (handle-roll-initiative-on-success content))))}
+
     (car/subscribe (:initiative-created channels)
                    (:combatant-add-request channels)
                    (:initiative-rolled-success channels))))

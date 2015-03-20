@@ -20,7 +20,9 @@ socket.onmessage = function(event) {
   if ("start-encounter" == eventName) {
     renderStartEncounter(payload);
   }
-
+  if ("initiative-created" == eventName) {
+    renderRound(payload);
+  }
 }
 
 function clearInputs() {
@@ -130,6 +132,20 @@ function renderStartEncounter(startEncounterData) {
   combatants.forEach(function(combatant) {
     $('#combatant-wait-list-ul').append('<li class="combatant-waiting">'+combatant.combatantName+'</li>');
   });
+}
+
+function renderRound(initiativeCreatedData) {
+  $("#round-div").show();
+
+  console.log("combatants: " + JSON.stringify(initiativeCreatedData));
+  var orderedCombatants = initiativeCreatedData.orderedCombatants;
+
+  for (var key in orderedCombatants) {
+    var name = orderedCombatants[key].combatantName,
+        initiative = orderedCombatants[key].initiative;
+    var li = '<li>'+name+' '+initiative+'</li>';
+    $('#round-order').append(li);
+  }
 }
 
 $(function() {
