@@ -23,6 +23,7 @@
                          :initiative-rolled "roll-initiative"
                          :initiative-created "initiative-created"
                          :combatant-add-request "combatant-add-request"
+                         :initiative-rolled-success "roll-initiative-success"
                          :error "error"})
 
 (defmacro wcar* [& body]
@@ -33,25 +34,22 @@
 (def clients (atom {}))
 (def combatants (atom #{}))
 
-(defn- handle-roll-initiative [context]
-  (let [dice-roll-value (get-in context ["data" "diceRoll"])
-        combatant-name (get-in context ["data" "combatantName"])
-        user (get-in context ["data" "user"])]
+(defn- handle-roll-initiative-ws [context]
+  (let [payload {:diceRoll (get-in context ["data" "diceRoll"])
+                 :combatantName (get-in context ["data" "combatantName"])
+                 :user (get-in context ["data" "user"])}]
+    (println "payload: " payload)
 
-    (let [payload {:diceRoll dice-roll-value
-                   :combatantName combatant-name
-                   :user user}]
+    (wcar* (car/publish (:initiative-rolled channels)
+                        (generate-string payload)))))
 
-      (println "payload: " payload)
-
-      (wcar* (car/publish (:initiative-rolled channels)
-                          (generate-string payload)))
-
-      (doseq [client @clients]
-        (server/send! (key client)
-                      (generate-string {:event-name "roll-initiative"
-                                        :payload payload})
-                      false)))))
+(defn- handle-roll-initiative-on-success [initiative-payload]
+  (println "initiative-payload: " initiative-payload)
+  (doseq [client @clients]
+    (server/send! (key client)
+                  (generate-string {:event-name "roll-initiative"
+                                    :payload initiative-payload})
+                  false)))
 
 (defn- handle-add-combatant-ws [context]
   "FIXME awful naming!!"
@@ -59,14 +57,17 @@
                  :combatantName (get-in context ["data" "combatantName"])
                  :user (get-in context ["data" "user"])}]
 
-    ;; TODO this should be handled by someone. for now, the UI will just subscribe to its own message
-    (wcar* (car/publish (:combatant-add-request channels)
-                        (generate-string payload)))))
+    (when-not (clojure.string/blank? (:combatantName payload))
+      (println "add-combatant-payload: " (generate-string payload))
+      ;; TODO this should be handled by someone. for now, the UI will just subscribe to its own message
+      (wcar* (car/publish (:combatant-add-request channels)
+                          (generate-string payload))))))
 
 (defn- handle-add-combatant-on-success [combatant-payload]
   "FIXME awful naming!!"
   (println "combatant-payload: " combatant-payload)
   (swap! combatants conj combatant-payload)
+  (println "combatants: " combatants)
   (doseq [client @clients]
     (server/send! (key client)
                   (generate-string {:event-name "add-combatant"
@@ -76,15 +77,21 @@
 (defn- handle-start-encounter [_]
   (println "handling start encounter")
   (println "combatants:" @combatants)
-  (wcar* (car/publish (:encounter-created channels)
-                      (generate-string {:encounterId encounter-id
-                                        :combatants (map #(assoc {} :combatantName %) @combatants)})))
+  (let [payload {:encounterId encounter-id
+                 :combatants @combatants}]
+    (println "start-encounter payload: " payload)
+    (wcar* (car/publish (:encounter-created channels)
+                        (generate-string payload))))
 
   (doseq [client @clients]
     (server/send! (key client)
                   (generate-string {:event-name "start-encounter"
                                     :payload {:combatants @combatants}})
                   false)))
+
+;; (defn- handle-start-encounter-on-success [_]
+;; (map #(assoc {} (:combatantName %) %) @combatants)
+;;   )
 
 (defn ws [request]
   (server/with-channel request con
@@ -95,7 +102,7 @@
                          (let [context (parse-string context-str)
                                resource (context "resource")]
                            (cond
-                             (= "roll-initiative" resource) (handle-roll-initiative context)
+                             (= "roll-initiative" resource) (handle-roll-initiative-ws context)
                              (= "add-combatant" resource) (handle-add-combatant-ws context)
                              (= "start-encounter" resource) (handle-start-encounter context)
                              :else (println "not found")))))
@@ -156,9 +163,15 @@
                                           (println "content: " content))))
      ;; TODO this is subscribing to unaltered message published by itself
      (:combatant-add-request channels) (fn f1 [[type match  content-json :as payload]]
-                                         (println "content-json: " content-json)
                                          (when (instance? String  content-json)
                                            (let [content (parse-string content-json true)]
-                                             (handle-add-combatant-on-success content))))}
+                                             (handle-add-combatant-on-success content))))
+
+     (:initiative-rolled-success channels) (fn f1 [[type match  content-json :as payload]]
+                                             (println "roll initiative on success")
+                                             (when (instance? String  content-json)
+                                               (let [content (parse-string content-json true)]
+                                                 (handle-roll-initiative-on-success content))))}
     (car/subscribe (:initiative-created channels)
-                   (:combatant-add-request channels))))
+                   (:combatant-add-request channels)
+                   (:initiative-rolled-success channels))))
