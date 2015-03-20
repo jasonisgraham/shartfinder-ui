@@ -103,7 +103,10 @@ function renderInitiative(initiativeData) {
   var user = initiativeData.user,
       diceRoll = initiativeData.diceRoll,
       combatantName = initiativeData.combatantName;
-  $('#initiative-rolls').append('<li>' + user + ' rolled a ' + diceRoll + ' for ' + combatantName + '</li>');
+
+  var li = '<li>' + user + ' rolled a ' + diceRoll + ' for ' + combatantName + '</li>';
+  console.log("li:  " +  li);
+  $('#initiative-rolls').append(li);
 
   $('#combatant-wait-list-ul > li').filter(function() {
     return $(this).text() === combatantName;
@@ -119,11 +122,13 @@ function renderStartEncounter(startEncounterData) {
   // $("#start-encounter-button").prop("disabled",true);
   $("#roll-initiative-div").show();
 
-  var combatantNames = startEncounterData.combatantNames;
+  var combatants = startEncounterData.combatants;
   $('#combatant-wait-list-ul').empty();
 
-  combatantNames.forEach(function(combatantName) {
-    $('#combatant-wait-list-ul').append('<li class="combatant-waiting">'+combatantName+'</li>');
+  console.log("combatants: " + JSON.stringify(combatants));
+
+  combatants.forEach(function(combatant) {
+    $('#combatant-wait-list-ul').append('<li class="combatant-waiting">'+combatant.combatantName+'</li>');
   });
 }
 

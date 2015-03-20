@@ -83,7 +83,7 @@
   (doseq [client @clients]
     (server/send! (key client)
                   (generate-string {:event-name "start-encounter"
-                                    :payload {:combatantNames @combatants}})
+                                    :payload {:combatants @combatants}})
                   false)))
 
 (defn ws [request]
