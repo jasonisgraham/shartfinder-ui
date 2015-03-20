@@ -108,7 +108,6 @@ function renderInitiative(initiativeData) {
   $('#combatant-wait-list-ul > li').filter(function() {
     return $(this).text() === combatantName;
   }).removeClass('combatant-waiting').addClass('combatant-ready');
-
 }
 
 function startEncounter() {

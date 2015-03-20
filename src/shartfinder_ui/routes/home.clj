@@ -22,12 +22,14 @@
 (def ^:private channels {:encounter-created "encounter-created"
                          :initiative-rolled "roll-initiative"
                          :initiative-created "initiative-created"
+                         :combatant-add-request "combatant-add-request"
                          :error "error"})
 
 (defmacro wcar* [& body]
   `(car/wcar server-connection ~@body))
 
-(def users (atom (db/get-all-users)))
+;; (def users (atom (db/get-all-users)))
+(def users (atom {}))
 (def clients (atom {}))
 (def combatants (atom #{}))
 
@@ -49,21 +51,27 @@
         (server/send! (key client)
                       (generate-string {:event-name "roll-initiative"
                                         :payload payload})
-                      false)))
-    ))
+                      false)))))
 
-(defn- handle-add-combatant [context]
-  (let [max-hp (get-in context ["data" "maxHP"])
-        combatant-name (get-in context ["data" "combatantName"])
-        user (get-in context ["data" "user"])]
-    (swap! combatants conj combatant-name)
-    (doseq [client @clients]
-      (server/send! (key client)
-                    (generate-string {:event-name "add-combatant"
-                                      :payload {:maxHP max-hp
-                                                :combatantName combatant-name
-                                                :user user}})
-                    false))))
+(defn- handle-add-combatant-ws [context]
+  "FIXME awful naming!!"
+  (let [payload {:maxHP (get-in context ["data" "maxHP"])
+                 :combatantName (get-in context ["data" "combatantName"])
+                 :user (get-in context ["data" "user"])}]
+
+    ;; TODO this should be handled by someone. for now, the UI will just subscribe to its own message
+    (wcar* (car/publish (:combatant-add-request channels)
+                        (generate-string payload)))))
+
+(defn- handle-add-combatant-on-success [combatant-payload]
+  "FIXME awful naming!!"
+  (println "combatant-payload: " combatant-payload)
+  (swap! combatants conj combatant-payload)
+  (doseq [client @clients]
+    (server/send! (key client)
+                  (generate-string {:event-name "add-combatant"
+                                    :payload combatant-payload})
+                  false)))
 
 (defn- handle-start-encounter [_]
   (println "handling start encounter")
@@ -88,7 +96,7 @@
                                resource (context "resource")]
                            (cond
                              (= "roll-initiative" resource) (handle-roll-initiative context)
-                             (= "add-combatant" resource) (handle-add-combatant context)
+                             (= "add-combatant" resource) (handle-add-combatant-ws context)
                              (= "start-encounter" resource) (handle-start-encounter context)
                              :else (println "not found")))))
 
@@ -106,7 +114,7 @@
   :post! (fn [context] (let [params (get-in context [:request :form-params])
                              new-user {:name (get params "user")
                                        :pass (get params "password")}]
-                         (db/add-user new-user)
+                         ;; (db/add-user new-user)
                          (swap! users conj new-user)
                          (doseq [client @clients]
                            (server/send! (key client)
@@ -140,10 +148,17 @@
 (defroutes ws-routes
   (GET "/ws" [] ws))
 
-;; (defonce listener
-;;   (car/with-new-pubsub-listener (:spec server-connection)
-;;     {(channels :initiative-created) (fn f1 [[type match  content-json :as payload]]
-;;                                      (when (instance? String  content-json)
-;;                                        (println )
-;;                                        (initialize-received-combatants (json/read-str content-json :key-fn keyword))))
-;;     (car/subscribe (channels :initiative-created))))
+(defonce listener
+  (car/with-new-pubsub-listener (:spec server-connection)
+    {(:initiative-created channels) (fn f1 [[type match  content-json :as payload]]
+                                      (when (instance? String  content-json)
+                                        (let [content (parse-string content-json true)]
+                                          (println "content: " content))))
+     ;; TODO this is subscribing to unaltered message published by itself
+     (:combatant-add-request channels) (fn f1 [[type match  content-json :as payload]]
+                                         (println "content-json: " content-json)
+                                         (when (instance? String  content-json)
+                                           (let [content (parse-string content-json true)]
+                                             (handle-add-combatant-on-success content))))}
+    (car/subscribe (:initiative-created channels)
+                   (:combatant-add-request channels))))
