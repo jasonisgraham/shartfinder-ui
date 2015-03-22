@@ -2,9 +2,11 @@
 var data = [], timestamps = [];
 
 var socket = (function() {
-  var ws_protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  var ws_protocol = window.location.protocol === "https:" ? "wss:" : "ws:",
+      ws_port = window.location.port ? ":" + window.location.port : "";
 
-  return new WebSocket(ws_protocol + "//"+window.location.hostname+":5000/ws");
+
+  return new WebSocket(ws_protocol + "//"+window.location.hostname+ws_port + "/ws");
   })();
 
 
