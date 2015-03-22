@@ -19,9 +19,7 @@
 (defn start-server
   "used for starting the server in development mode from REPL"
   [& [port]]
-)
-
-(let [port (or port (Integer/parseInt (System/getenv "PORT")) 5000)]
+  (let [port (Integer/parseInt (str (or port (System/getenv "PORT") 5000)))]
     (reset! server (server/run-server (handler) {:port port}))
     (println (str "You can view the site on:" port))))
 
