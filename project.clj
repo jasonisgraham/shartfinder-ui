@@ -17,6 +17,8 @@
                  [lib-noir "0.9.5"]
                  [sonian/carica "1.1.0"]]
 
+  :min-lein-version "2.0.0"
+
   :classpath-add ["config/config.edn"]
 
   :plugins [[lein-ring "0.8.12"]]
