@@ -1,7 +1,6 @@
 (ns shartfinder-ui.views.layout
   (:require [hiccup.page :refer :all]
             [hiccup.form :refer :all]
-            [hiccup.util :refer [to-uri]]
             [shartfinder-ui.models.db :as db]))
 
 (defn common [& body]

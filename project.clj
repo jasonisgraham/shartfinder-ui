@@ -12,7 +12,9 @@
                  [com.taoensso/carmine "2.9.0"]
                  [postgresql/postgresql "9.3-1102.jdbc41"]
                  [ring/ring-devel "1.3.1"]
-                 [ring/ring-defaults "0.1.4"]]
+                 [ring/ring-defaults "0.1.4"]
+                 [clj-http "1.0.1"]
+                 [lib-noir "0.9.5"]]
 
   :min-lein-version "2.0.0"
 

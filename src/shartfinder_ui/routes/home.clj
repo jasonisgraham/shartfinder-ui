@@ -6,7 +6,9 @@
             [org.httpkit.server :as server]
             [shartfinder-ui.models.db :as db]
             [taoensso.carmine :as car :refer (wcar)]
-            [carica.core :refer [config]]))
+            [carica.core :refer [config]]
+            [clojure.java.io :refer [file]]
+            [noir.io :as io]))
 
 (def ^:private encounter-id 69)
 
@@ -128,6 +130,16 @@
 (defresource home
   :service-available? true
   :allowed-methods [:get]
+  :etag "fixed-etag"
+  :available-media-types ["text/html"]
+
+  :handle-ok (fn [{{{ resource :resource} :route-params } :request}]
+               (clojure.java.io/input-stream (io/get-resource "/home.html"))))
+
+
+(defresource home-test
+  :service-available? true
+  :allowed-methods [:get]
   :handle-service-not-available "service not available, yo!"
   :handle-ok (do (reset! users (db/get-all-users))
                  (reset! combatants #{})
@@ -137,6 +149,7 @@
 
 (defroutes home-routes
   (ANY "/" request home)
+  (ANY "/test" request home-test)
   (ANY "/add-user" request add-user)
   (ANY "/users" request get-users))
 
