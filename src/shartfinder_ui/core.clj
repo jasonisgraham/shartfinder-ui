@@ -3,7 +3,8 @@
             [ring.middleware.reload :as reload]
             [compojure.handler :as compojure-handler]
             [ring.middleware.defaults :as defaults]
-            [shartfinder-ui.handler :refer [ app ]])
+            [shartfinder-ui.handler :refer [ app ]]
+            [shartfinder-ui.models.db :as db])
   (:use [ring.middleware file-info file]))
 
 
@@ -28,4 +29,5 @@
     (reset! server nil)))
 
 (defn -main [& args]
+  (when-not (db/migrated?) (db/migrate))
   (start-server args))

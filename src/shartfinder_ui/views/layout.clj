@@ -26,19 +26,18 @@
           [:button {:id "add-user-button" :onclick "addUser()"} "Add User"]
           [:button {:id "reset-users-button" :disabled true :onclick "resetUsers()"} "Reset Users"]]))
 
-(defn render-combatants [users]
+(defn render-combatants []
   (html5 [:div {:id "combatants-div"}
           [:h1 "Combatants"]
           [:ul {:id "combatant-list"}]
           [:input {:type "text" :id "combatants_combatant-name" :placeholder "combatant name"}]
           [:input {:type "number" :id "combatants_max-hp" :placeholder "max HP"}]
-          [:select {:id "combatants_user"}
-           (html5 (select-options (map :name users)))]
+          [:select {:id "combatants_user"}]
           [:br]
           [:button {:id "add-combatant-button" :onclick "addCombatant()"} "Add Combatant"]
           [:button {:id "start-encounter-button" :onclick "startEncounter()"} "Start Encounter"]]))
 
-(defn render-roll-initiative [combatants]
+(defn render-roll-initiative []
   (html5 [:div {:id "roll-initiative-div", :style "display: none"}
           [:h1 "Roll Initiative"]
           [:p {:id "initiative-message"}]
@@ -47,8 +46,7 @@
            [:ul {:id "combatant-wait-list-ul"}]]
           [:ul {:id "initiative-rolls"}]
           [:input {:type "text" :id "initiative_user" :placeholder "user id"}]
-          [:select {:id "initiative_combatant-name"}
-           (html5 (select-options (map :name combatants)))]
+          [:select {:id "initiative_combatant-name"}]
           [:input {:type "number" :id "dice-roll" :placeholder "dice roll"}]
           [:br]
           [:button {:onclick "rollInitiative()"} "Roll Initiative"]]))
@@ -58,11 +56,9 @@
           [:h1 "Round"]
           [:ul {:id "round-order"}]]))
 
-(defn main [{combatants :combatants, users :users}]
+(defn main []
   (common
-   (html5 (render-users )
-          (println "users: " users)
-          (println "combatants: " combatants)
-          (render-combatants @users)
-          (render-roll-initiative @combatants)
+   (html5 (render-users)
+          (render-combatants)
+          (render-roll-initiative)
           (render-round))))

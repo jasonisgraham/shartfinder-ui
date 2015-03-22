@@ -1,19 +1,17 @@
 (ns shartfinder-ui.models.db
-  (:require [clojure.java.jdbc :as sql]))
+  (:require [clojure.java.jdbc :as sql]
+            [carica.core :refer [config]]))
 
-(let [db-host "localhost"
-      db-port 5432
-      db-name "liberator_service"]
-  (def db-spec {:subprotocol "postgresql"
-                :subname (str "//" db-host ":" db-port "/" db-name)
-                :user "jason"
-                :password "stanksource"}))
+(def db-spec (config :database))
 
-(defn migrated? [table-name]
-  (-> (sql/query db-spec
-                 [(str "select count(*) from information_schema.tables "
-                       "where table_name='" table-name "'")])
-      first :count pos?))
+(defn migrated?
+  ([]
+   (or (migrated? "users") (migrated? "combatants")))
+  ([table-name]
+   (-> (sql/query db-spec
+                  [(str "select count(*) from information_schema.tables "
+                        "where table_name='" table-name "'")])
+       first :count pos?)))
 
 (defn drop-table [table-name]
   (println "dropping table " table-name)

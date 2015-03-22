@@ -14,7 +14,10 @@
                  [postgresql/postgresql "9.3-1102.jdbc41"]
                  [com.taoensso/carmine "2.9.0"]
                  [clj-http "1.0.1"]
-                 [lib-noir "0.9.5"]]
+                 [lib-noir "0.9.5"]
+                 [sonian/carica "1.1.0"]]
+
+  :classpath-add ["config/config.edn"]
 
   :plugins [[lein-ring "0.8.12"]]
 
