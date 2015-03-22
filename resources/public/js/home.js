@@ -1,7 +1,15 @@
+
 var data = [], timestamps = [];
-var socket = new WebSocket("ws://"+window.location.hostname+":5000/ws");
+
+var socket = (function() {
+  var ws_protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+
+  return new WebSocket(ws_protocol + "//"+window.location.hostname+":5000/ws");
+  })();
+
 
 socket.onmessage = function(event) {
+
   var data = JSON.parse(event.data);
   var eventName = data["event-name"];
   var payload = data["payload"];
@@ -50,7 +58,7 @@ function getUsers() {
 }
 
 function handleError(xhr) {
-  $('#error').text(xhr.statusText + ": " + xhr.responseText);
+  $('#errors').text(xhr.statusText + ": " + xhr.responseText);
 }
 
 function addUser() {
@@ -59,14 +67,14 @@ function addUser() {
                        password: $('#password').val(),
                        password_confirm: $('#password-confirm').val()
                      }, renderUsers)
-      .fail(handleError);
+    .fail(handleError);
   clearInputs();
 }
 
 function addCombatant() {
   var user = $('#combatants_user').val(),
-      combatantName = $('#combatants_combatant-name').val(),
-      maxHP = $('#combatants_max-hp').val();
+  combatantName = $('#combatants_combatant-name').val(),
+  maxHP = $('#combatants_max-hp').val();
   var combatantData = { data: { user: user,
                                 combatantName: combatantName,
                                 maxHP : maxHP },
@@ -82,16 +90,16 @@ function addCombatant() {
 function renderCombatant(combatantData) {
 
   var combatantName = combatantData.combatantName,
-      user = combatantData.user,
-      maxHP = combatantData.maxHP;
+  user = combatantData.user,
+  maxHP = combatantData.maxHP;
   $('#combatant-list').append('<li>' + combatantName + ' here has max hp of ' + maxHP + '</li>');
   $('#initiative_combatant-name').append($('<option>', {}).text(combatantName));
 }
 
 function rollInitiative() {
   var user = $('#initiative_user').val(),
-      combatantName = $('#initiative_combatant-name').val(),
-      diceRoll = $('#dice-roll').val();
+  combatantName = $('#initiative_combatant-name').val(),
+  diceRoll = $('#dice-roll').val();
   var initiativeRolledData = { data: { user: user,
                                        combatantName: combatantName,
                                        diceRoll: diceRoll},
@@ -103,8 +111,8 @@ function rollInitiative() {
 
 function renderInitiative(initiativeData) {
   var user = initiativeData.user,
-      diceRoll = initiativeData.diceRoll,
-      combatantName = initiativeData.combatantName;
+  diceRoll = initiativeData.diceRoll,
+  combatantName = initiativeData.combatantName;
 
   var li = '<li>' + user + ' rolled a ' + diceRoll + ' for ' + combatantName + '</li>';
   console.log("li:  " +  li);
@@ -142,7 +150,7 @@ function renderRound(initiativeCreatedData) {
 
   for (var key in orderedCombatants) {
     var name = orderedCombatants[key].combatantName,
-        initiative = orderedCombatants[key].initiative;
+    initiative = orderedCombatants[key].initiative;
     var li = '<li>'+name+' '+initiative+'</li>';
     $('#round-order').append(li);
   }

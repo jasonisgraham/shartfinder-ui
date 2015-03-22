@@ -5,7 +5,8 @@
             [ring.middleware.defaults :as defaults]
             [shartfinder-ui.handler :refer [ app ]]
             [shartfinder-ui.models.db :as db])
-  (:use [ring.middleware file-info file]))
+  (:use [ring.middleware file-info file])
+  (:gen-class))
 
 
 (defonce server (atom nil))

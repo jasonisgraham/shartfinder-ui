@@ -1,6 +1,7 @@
 (ns shartfinder-ui.views.layout
   (:require [hiccup.page :refer :all]
             [hiccup.form :refer :all]
+            [hiccup.util :refer [to-uri]]
             [shartfinder-ui.models.db :as db]))
 
 (defn common [& body]
@@ -12,10 +13,12 @@
     (include-css "/css/screen.css")]
    [:body body]))
 
+(defn errors []
+  (html5  [:p {:id "error"}]))
+
 (defn render-users []
   (html5 [:div {:id "users-div"}
           [:h1 "Users"]
-          [:p {:id "error"}]
           [:ul {:id "user-list"}]
           [:input {:type "text", :id "name", :placeholder "user name"}]
           [:br]
@@ -58,7 +61,8 @@
 
 (defn main []
   (common
-   (html5 (render-users)
+   (html5 (errors)
+          (render-users)
           (render-combatants)
           (render-roll-initiative)
           (render-round))))
