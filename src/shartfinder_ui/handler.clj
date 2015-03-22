@@ -1,5 +1,4 @@
 (ns shartfinder-ui.handler
-  (:use ring.middleware.cors)
   (:require [compojure.core :refer [defroutes routes]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.file-info :refer [wrap-file-info]]

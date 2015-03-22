@@ -6,7 +6,6 @@
             [org.httpkit.server :as server]
             [shartfinder-ui.models.db :as db]
             [taoensso.carmine :as car :refer (wcar)]
-            [clj-http.client :as client]
             [carica.core :refer [config]]))
 
 (def ^:private encounter-id 69)
