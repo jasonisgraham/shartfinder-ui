@@ -1,5 +1,5 @@
 var data = [], timestamps = [];
-var socket = new WebSocket("ws://"+window.location.hostname+":8080/ws");
+var socket = new WebSocket("ws://"+window.location.hostname+":5000/ws");
 
 socket.onmessage = function(event) {
   var data = JSON.parse(event.data);
@@ -33,7 +33,7 @@ function clearInputs() {
 
 function renderUsers(users) {
   $('#user-list').empty();
-
+  $('#combatants_user').empty();
   users.forEach(function(user) {
     $('#user-list').append('<li>'+user+'</li>');
     $('#combatants_user').append($('<option>', {}).text(user));
