@@ -143,6 +143,18 @@
 (defroutes ws-routes
   (GET "/ws" [] ws))
 
+;; (defmacro wcar* [& body]
+;;   `(car/wcar server-connection ~@body))
+
+;; TODO understand how to write a macro! or is this a needed???
+;; (defmacro handle-pubsub-subscribe [handle-event-fn]
+;;   `(fn f1 [[type match  content-json :as payload]]
+;;     (when (instance? String  content-json)
+;;       (let [content (parse-string content-json true)]
+;;         (println "content: " content)
+;;         (println "im really here")
+;;         (handle-event-fn content)))))
+
 (defonce listener
   (car/with-new-pubsub-listener (:spec server-connection)
     {(:initiative-created channels) (fn f1 [[type match  content-json :as payload]]

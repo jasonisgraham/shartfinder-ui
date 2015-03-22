@@ -13,3 +13,4 @@ pom.xml
 .emacs.desktop
 .lein-repl-history
 \#*
+\.#*
