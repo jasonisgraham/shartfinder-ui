@@ -21,7 +21,7 @@
   [& [port]]
   (let [port (if port (Integer/parseInt port) 8080)]
     (reset! server (server/run-server (handler) {:port port}))
-    (println (str "You can view the site at http://localhost:" port))))
+    (println (str "You can view the site on:" port))))
 
 (defn stop-server []
   (when-not (nil? @server)

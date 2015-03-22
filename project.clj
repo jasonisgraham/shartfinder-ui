@@ -21,7 +21,9 @@
 
   :plugins [[lein-ring "0.8.12"]]
 
-  :main shartfinder-ui.core
+  :main ^{:skip-aot true} shartfinder-ui.core
+
+  :uberjar-name "shartfinder-ui-standalone.jar"
 
   :profiles {:uberjar {:aot :all}
              :production {:ring
