@@ -156,37 +156,18 @@
 (defroutes ws-routes
   (GET "/ws" [] ws))
 
-;; (defmacro wcar* [& body]
-;;   `(car/wcar server-connection ~@body))
-
-;; TODO understand how to write a macro! or is this a needed???
-;; (defmacro handle-pubsub-subscribe [handle-event-fn]
-;;   `(fn f1 [[type match  content-json :as payload]]
-;;     (when (instance? String  content-json)
-;;       (let [content (parse-string content-json true)]
-;;         (println "content: " content)
-;;         (println "im really here")
-;;         (handle-event-fn content)))))
+(defmacro handle-pubsub-subscribe [handle-event-fn]
+  `(fn f1 [[type# match# content-json# :as payload#]]
+     (when (instance? String content-json#)
+       (let [content# (parse-string content-json# true)]
+         (println "payload: " payload#)
+         (~handle-event-fn content#)))))
 
 (defonce listener
   (car/with-new-pubsub-listener (:spec server-connection)
-    {(:initiative-created channels) (fn f1 [[type match  content-json :as payload]]
-                                      (when (instance? String  content-json)
-                                        (let [content (parse-string content-json true)]
-                                          (println "content: " content)
-                                          (handle-initiative-created content))))
-
-     ;; TODO this is subscribing to unaltered message published by itself
-     (:combatant-add-request channels) (fn f1 [[type match  content-json :as payload]]
-                                         (when (instance? String  content-json)
-                                           (let [content (parse-string content-json true)]
-                                             (handle-add-combatant-on-success content))))
-
-     (:initiative-rolled-success channels) (fn f1 [[type match  content-json :as payload]]
-                                             (println "roll initiative on success")
-                                             (when (instance? String  content-json)
-                                               (let [content (parse-string content-json true)]
-                                                 (handle-roll-initiative-on-success content))))}
+    {(:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created)
+     (:combatant-add-request channels) (handle-pubsub-subscribe handle-add-combatant-on-success)
+     (:initiative-rolled-success channels) (handle-pubsub-subscribe handle-add-combatant-on-success)}
 
     (car/subscribe (:initiative-created channels)
                    (:combatant-add-request channels)
