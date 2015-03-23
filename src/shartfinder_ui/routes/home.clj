@@ -30,7 +30,7 @@
 (defmacro wcar* [& body]
   `(car/wcar server-connection ~@body))
 
-(defn ws-send-to-clients [event-name payload]
+(defn- ws-send-to-clients [event-name payload]
   (println "ws-send-to-clients.  event-name: '" event-name "' payload: " payload)
   (doseq [client @clients]
     (server/send! (key client)
@@ -92,11 +92,11 @@
     (server/on-receive con
                        (fn [context-str]
                          (let [context (parse-string context-str)
-                               resource (context "resource")]
+                               event-name (context "eventName")]
                            (cond
-                             (= "roll-initiative" resource) (handle-roll-initiative-ws context)
-                             (= "add-combatant" resource) (handle-add-combatant-ws context)
-                             (= "start-encounter" resource) (handle-start-encounter context)
+                             (= "roll-initiative" event-name) (handle-roll-initiative-ws context)
+                             (= "add-combatant" event-name) (handle-add-combatant-ws context)
+                             (= "start-encounter" event-name) (handle-start-encounter context)
                              :else (println "not found")))))
 
     (server/on-close con (fn [status]
@@ -122,7 +122,7 @@
   :malformed? (fn [context] (let [params (get-in context [:request :form-params])]
                               (or
                                (empty? (get params "user"))
-                               (not= (get params "password") (get params "password_confirm")))))
+                               (not= (get params "password") (get params "passwordConfirm")))))
 
   :handle-malformed "user name and password must be filled in and password must match"
   :available-media-types ["application/json"])

@@ -1,17 +1,12 @@
-
-var data = [], timestamps = [];
-
-var socket = (function() {
-  var ws_protocol = window.location.protocol === "https:" ? "wss:" : "ws:",
-      ws_port = window.location.port ? ":" + window.location.port : "";
-
-
-  return new WebSocket(ws_protocol + "//"+window.location.hostname+ws_port + "/ws");
-  })();
-
+var data = [],
+    timestamps = [],
+    socket = (function() {
+      var ws_protocol = window.location.protocol === "https:" ? "wss:" : "ws:",
+          ws_port = window.location.port ? ":" + window.location.port : "";
+      return new WebSocket(ws_protocol + "//"+window.location.hostname+ws_port + "/ws");
+    })();
 
 socket.onmessage = function(event) {
-
   var data = JSON.parse(event.data);
   var eventName = data["event-name"];
   var payload = data["payload"];
@@ -67,21 +62,21 @@ function addUser() {
   var jqxhr = $.post("/add-user",
                      { user: $('#name').val(),
                        password: $('#password').val(),
-                       password_confirm: $('#password-confirm').val()
+                       passwordConfirm: $('#password-confirm').val()
                      }, renderUsers)
-    .fail(handleError);
+      .fail(handleError);
   clearInputs();
 }
 
 function addCombatant() {
   var user = $('#combatants_user').val(),
-  combatantName = $('#combatants_combatant-name').val(),
-  maxHP = $('#combatants_max-hp').val();
-  var combatantData = { data: { user: user,
+      combatantName = $('#combatants_combatant-name').val(),
+      maxHP = $('#combatants_max-hp').val(),
+      combatantData = { data: { user: user,
                                 combatantName: combatantName,
                                 maxHP : maxHP },
-                        resource: "add-combatant" };
-  var combatantDataString = JSON.stringify(combatantData);
+                        eventName: "add-combatant" },
+      combatantDataString = JSON.stringify(combatantData);
   socket.send(combatantDataString);
 
   $('#combatants_user').val('');
@@ -90,33 +85,30 @@ function addCombatant() {
 }
 
 function renderCombatant(combatantData) {
-
   var combatantName = combatantData.combatantName,
-  user = combatantData.user,
-  maxHP = combatantData.maxHP;
+      user = combatantData.user,
+      maxHP = combatantData.maxHP;
   $('#combatant-list').append('<li>' + combatantName + ' here has max hp of ' + maxHP + '</li>');
   $('#initiative_combatant-name').append($('<option>', {}).text(combatantName));
 }
 
 function rollInitiative() {
   var user = $('#initiative_user').val(),
-  combatantName = $('#initiative_combatant-name').val(),
-  diceRoll = $('#dice-roll').val();
-  var initiativeRolledData = { data: { user: user,
+      combatantName = $('#initiative_combatant-name').val(),
+      diceRoll = $('#dice-roll').val(),
+      initiativeRolledData = { data: { user: user,
                                        combatantName: combatantName,
                                        diceRoll: diceRoll},
-                               resource: "roll-initiative" };
-  var initiativeRolledDataString = JSON.stringify(initiativeRolledData);
+                               eventName: "roll-initiative" },
+      initiativeRolledDataString = JSON.stringify(initiativeRolledData);
   socket.send(initiativeRolledDataString);
-
 }
 
 function renderInitiative(initiativeData) {
   var user = initiativeData.user,
-  diceRoll = initiativeData.diceRoll,
-  combatantName = initiativeData.combatantName;
-
-  var li = '<li>' + user + ' rolled a ' + diceRoll + ' for ' + combatantName + '</li>';
+      diceRoll = initiativeData.diceRoll,
+      combatantName = initiativeData.combatantName,
+      li = '<li>' + user + ' rolled a ' + diceRoll + ' for ' + combatantName + '</li>';
   console.log("li:  " +  li);
   $('#initiative-rolls').append(li);
 
@@ -126,7 +118,7 @@ function renderInitiative(initiativeData) {
 }
 
 function startEncounter() {
-  socket.send(JSON.stringify( { resource: "start-encounter" }));
+  socket.send(JSON.stringify( { eventName: "start-encounter" }));
 }
 
 function renderStartEncounter(startEncounterData) {
@@ -152,8 +144,8 @@ function renderRound(initiativeCreatedData) {
 
   for (var key in orderedCombatants) {
     var name = orderedCombatants[key].combatantName,
-    initiative = orderedCombatants[key].initiative;
-    var li = '<li>'+name+' '+initiative+'</li>';
+        initiative = orderedCombatants[key].initiative,
+        li = '<li>'+name+' '+initiative+'</li>';
     $('#round-order').append(li);
   }
 }
