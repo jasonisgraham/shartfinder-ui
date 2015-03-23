@@ -6,29 +6,15 @@
             [org.httpkit.server :as server]
             [shartfinder-ui.models.db :as db]
             [taoensso.carmine :as car :refer (wcar)]
-            [carica.core :refer [config]]
             [clojure.java.io :refer [file]]
-            [noir.io :as io]))
+            [noir.io :as io]
+            [shartfinder-ui.common :refer :all]))
 
 (def ^:private encounter-id 69)
-
-(def ^:private server-connection {:pool {}
-                                  :spec (config :redis :spec)})
-(def ^:private service-urls (config :service-urls))
-
-(def ^:private channels {:encounter-created "encounter-created"
-                         :initiative-rolled "roll-initiative"
-                         :initiative-created "initiative-created"
-                         :combatant-add-request "combatant-add-request"
-                         :initiative-rolled-success "roll-initiative-success"
-                         :error "error"})
 
 (def users (atom (db/get-all-users)))
 (def clients (atom {}))
 (def combatants (atom #{}))
-
-(defmacro wcar* [& body]
-  `(car/wcar server-connection ~@body))
 
 (defn- ws-send-to-clients [event-name payload]
   (println "ws-send-to-clients.  event-name: '" event-name "' payload: " payload)
@@ -48,6 +34,7 @@
                         (generate-string payload)))))
 
 (defn- handle-roll-initiative-on-success [initiative-payload]
+  (println "here handle-roll-initiative-on-success")
   (ws-send-to-clients "roll-initiative" initiative-payload))
 
 (defn- handle-add-combatant-ws [context]
@@ -58,11 +45,13 @@
 
     (when-not (clojure.string/blank? (:combatantName payload))
       (println "add-combatant-payload: " (generate-string payload))
-      ;; TODO this should be handled by someone. for now, the UI will just subscribe to its own message
+      ;; TODO this should be handled by someone.
+      ;; for now, the UI will just subscribe to its own message
       (wcar* (car/publish (:combatant-add-request channels)
                           (generate-string payload))))))
 
 (defn- handle-add-combatant-on-success [combatant-payload]
+  (println "here: handle-add-combatant-on-success")
   "FIXME awful naming!!"
   (swap! combatants conj combatant-payload)
   (ws-send-to-clients "add-combatant" combatant-payload))
@@ -156,18 +145,11 @@
 (defroutes ws-routes
   (GET "/ws" [] ws))
 
-(defmacro handle-pubsub-subscribe [handle-event-fn]
-  `(fn f1 [[type# match# content-json# :as payload#]]
-     (when (instance? String content-json#)
-       (let [content# (parse-string content-json# true)]
-         (println "payload: " payload#)
-         (~handle-event-fn content#)))))
-
 (defonce listener
   (car/with-new-pubsub-listener (:spec server-connection)
     {(:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created)
      (:combatant-add-request channels) (handle-pubsub-subscribe handle-add-combatant-on-success)
-     (:initiative-rolled-success channels) (handle-pubsub-subscribe handle-add-combatant-on-success)}
+     (:initiative-rolled-success channels) (handle-pubsub-subscribe handle-roll-initiative-on-success)}
 
     (car/subscribe (:initiative-created channels)
                    (:combatant-add-request channels)
