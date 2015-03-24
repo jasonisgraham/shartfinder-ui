@@ -8,10 +8,14 @@
 (def service-urls (config :service-urls))
 
 (def channels {:encounter-created "encounter-created"
-               :initiative-rolled "roll-initiative"
+
+               :combatant-added "combatant-added"
+               :add-combatant-command "add-combatant-command"
+
+               :initiative-rolled "initiative-rolled"
+               :roll-initiative-command "roll-initiative-command"
                :initiative-created "initiative-created"
-               :combatant-add-request "combatant-add-request"
-               :initiative-rolled-success "roll-initiative-success"
+
                :error "error"})
 
 (defmacro wcar* [& body]

@@ -8,7 +8,6 @@
   (:use [ring.middleware file-info file])
   (:gen-class))
 
-
 (defonce server (atom nil))
 (def in-dev? false)
 

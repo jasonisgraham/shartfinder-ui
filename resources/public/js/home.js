@@ -77,6 +77,8 @@ function addCombatant() {
                                 maxHP : maxHP },
                         eventName: "add-combatant" },
       combatantDataString = JSON.stringify(combatantData);
+
+  console.log('addCombatant: ' + user + ' ' + combatantName + ' ' + maxHP + ' ' + combatantDataString);
   socket.send(combatantDataString);
 
   $('#combatants_user').val('');

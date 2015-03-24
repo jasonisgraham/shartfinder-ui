@@ -24,42 +24,37 @@
                                     :payload payload})
                   false)))
 
-(defn- handle-roll-initiative-ws [context]
+(defn- handle-roll-initiative-request [context]
   (let [payload {:diceRoll (get-in context ["data" "diceRoll"])
                  :combatantName (get-in context ["data" "combatantName"])
                  :user (get-in context ["data" "user"])}]
     (println "payload: " payload)
 
-    (wcar* (car/publish (:initiative-rolled channels)
+    (wcar* (car/publish (:roll-initiative-command channels)
                         (generate-string payload)))))
 
-(defn- handle-roll-initiative-on-success [initiative-payload]
+(defn- handle-roll-initiative-response [initiative-payload]
   (println "here handle-roll-initiative-on-success")
   (ws-send-to-clients "roll-initiative" initiative-payload))
 
-(defn- handle-add-combatant-ws [context]
-  "FIXME awful naming!!"
+(defn- handle-add-combatant-request [context]
   (let [payload {:maxHP (get-in context ["data" "maxHP"])
                  :combatantName (get-in context ["data" "combatantName"])
                  :user (get-in context ["data" "user"])}]
 
     (when-not (clojure.string/blank? (:combatantName payload))
       (println "add-combatant-payload: " (generate-string payload))
-      ;; TODO this should be handled by someone.
-      ;; for now, the UI will just subscribe to its own message
-      (wcar* (car/publish (:combatant-add-request channels)
+      (wcar* (car/publish (:combatant-added channels)
                           (generate-string payload))))))
 
-(defn- handle-add-combatant-on-success [combatant-payload]
-  (println "here: handle-add-combatant-on-success")
-  "FIXME awful naming!!"
+(defn- handle-add-combatant-response [combatant-payload]
   (swap! combatants conj combatant-payload)
   (ws-send-to-clients "add-combatant" combatant-payload))
 
-(defn- handle-initiative-created [initiative-created-payload]
+(defn- handle-initiative-created-reponse [initiative-created-payload]
   (ws-send-to-clients "initiative-created" initiative-created-payload))
 
-(defn- handle-start-encounter [_]
+(defn- handle-start-encounter-request [_]
   (println "handling start encounter")
   (println "combatants:" @combatants)
   (let [payload {:encounterId encounter-id
@@ -83,9 +78,9 @@
                          (let [context (parse-string context-str)
                                event-name (context "eventName")]
                            (cond
-                             (= "roll-initiative" event-name) (handle-roll-initiative-ws context)
-                             (= "add-combatant" event-name) (handle-add-combatant-ws context)
-                             (= "start-encounter" event-name) (handle-start-encounter context)
+                             (= "roll-initiative" event-name) (handle-roll-initiative-request context)
+                             (= "add-combatant" event-name) (handle-add-combatant-request context)
+                             (= "start-encounter" event-name) (handle-start-encounter-request context)
                              :else (println "not found")))))
 
     (server/on-close con (fn [status]
@@ -111,7 +106,8 @@
   :malformed? (fn [context] (let [params (get-in context [:request :form-params])]
                               (or
                                (empty? (get params "user"))
-                               (not= (get params "password") (get params "passwordConfirm")))))
+                               (not= (get params "password")
+                                     (get params "passwordConfirm")))))
 
   :handle-malformed "user name and password must be filled in and password must match"
   :available-media-types ["application/json"])
@@ -147,10 +143,10 @@
 
 (defonce listener
   (car/with-new-pubsub-listener (:spec server-connection)
-    {(:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created)
-     (:combatant-add-request channels) (handle-pubsub-subscribe handle-add-combatant-on-success)
-     (:initiative-rolled-success channels) (handle-pubsub-subscribe handle-roll-initiative-on-success)}
+    {(:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created-reponse)
+     (:combatant-added channels) (handle-pubsub-subscribe handle-add-combatant-response)
+     (:initiative-rolled channels) (handle-pubsub-subscribe handle-roll-initiative-response)}
 
     (car/subscribe (:initiative-created channels)
-                   (:combatant-add-request channels)
-                   (:initiative-rolled-success channels))))
+                   (:combatant-added channels)
+                   (:initative-rolled channels))))
