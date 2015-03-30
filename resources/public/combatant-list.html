@@ -1,0 +1,46 @@
+<link rel="import" href="components/polymer/polymer.html">
+<link rel="import" href="combatant-card.html">
+	<link rel="import" href="x-websocket.html">
+
+<polymer-element name="combatant-list" attributes="combatants">
+  <template>
+    <style>
+    :host {
+      display: block;
+      width: 100%;
+    }
+    combatant-card {
+      margin-top: 30px;
+    }
+    </style>
+
+	
+	<div layout vertical center>
+	
+	  <input type="text" value="{{combatantName}}"> <button on-click="{{addCombatant}}">Add Combatant</button>
+
+	  <template repeat="{{combatant in combatants}}">
+		<combatant-card>
+		  {{combatant.combatantName}}
+		</combatant-card>
+	  </template>
+
+	</div>
+	
+  </template>
+
+  <script>
+  Polymer({
+  created: function() {
+      this.combatants = [];
+    },
+	addCombatant: function() {
+		var addCombatantData = { data: { combatantName: this.combatantName}, eventName: "add-combatant" };
+		var xws = document.querySelector("x-websocket");
+		xws.send(addCombatantData);
+		this.combatantName = '';
+	  }
+	});
+  </script>
+
+</polymer-element>
