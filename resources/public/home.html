@@ -1,6 +1,59 @@
+<!doctype html>
 <html>
-  <body>
-    <h1>Make this pretty</h1>
-    <a href="test">test page with end points (WIP)</a>
-  </body>
+
+<head>
+
+	<title>Shartfinder</title>
+
+	<meta name="viewport" 
+	content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+	<script src="components/webcomponentsjs/webcomponents.js">
+	</script>
+
+	<link rel="import" href="combatant-list.html">
+	<link rel="import" href="x-websocket.html">
+	
+	<style>
+		html,body {
+			height: 100%;
+			margin: 0;
+			background-color: #E5E5E5;
+			font-family: sans-serif;
+		}
+		.container {
+			width: 80%;
+			margin: 50px auto;
+		}
+		@media (min-width: 481px) {
+			.container {
+				width: 200px;
+			}
+		}
+	</style>
+
+</head>
+
+<body unresolved>
+	
+	<div class="container" layout vertical center>
+
+	<x-websocket json></x-websocket>
+		
+		<combatant-list></combatant-list>
+	</div>
+	
+	<script>
+	window.addEventListener('polymer-ready', function(e) {
+			var xws = document.querySelector("x-websocket");
+			var cl = document.querySelector("combatant-list");
+			xws.addEventListener("message", function(event) {
+				console.log("message", event.detail.data);
+				cl.combatants.push(event.detail.data.payload);
+			});
+		});
+	</script>
+
+</body>
+
 </html>
