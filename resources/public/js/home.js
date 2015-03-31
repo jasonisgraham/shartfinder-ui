@@ -8,7 +8,7 @@ var data = [],
 
 socket.onmessage = function(event) {
   var data = JSON.parse(event.data);
-  var eventName = data["event-name"];
+  var eventName = data["eventName"];
   var payload = data["payload"];
 
   console.log("eventName: " + eventName);

@@ -1,6 +1,7 @@
 <link rel="import" href="components/polymer/polymer.html">
+<link rel="import" href="components/core-icon-button/core-icon-button.html">
 
-<polymer-element name="combatant-card" noscript>
+<polymer-element name="combatant-card" attributes="show combatantName">
   <template>
     <style>
     :host {
@@ -12,9 +13,50 @@
       font-size: 1.2rem;
       font-weight: 300;
     }
+	core-icon-button {
+	  position: absolute;
+	  top: 3px;
+	  right: 3px;
+	  color: #636363;
+	}
+	:host([selected]) core-icon-button {
+	  color: #008000;
+	}
     </style>
+	
 
+	<core-icon-button
+	  hidden?="{{show != 'add-combatant'}}"
+	  id="favicon"
+	  icon="add-circle"
+	  on-tap="{{selectedTapped}}">
+	</core-icon-button>
 	<content></content>
+	<div hidden?="{{show != 'initiative' || !submitted}}">Submitted initiative, waiting for others...</div>
+	<input type="text" value="{{initiativeRoll}}" hidden?="{{show != 'initiative' || submitted}}"> <button on-click="{{submitInitiative}}"  hidden?="{{show != 'initiative' || submitted}}">Submit Initiative</button>
     
   </template>
+  <script>
+	Polymer({
+	  publish: {
+		selected: {
+		  value: false,
+		  reflect: true
+		},
+		submitted: {
+			value: false,
+			reflect: true
+		}
+	  },
+	  selectedTapped: function() {
+		this.selected = !this.selected;
+	  },
+	  submitInitiative: function(){
+		var submitInitiativeData = { data: { combatantName: this.combatantName, diceRoll : this.initiativeRoll}, eventName: "roll-initiative" };
+		var xws = document.querySelector("x-websocket");
+		xws.send(submitInitiativeData);
+		this.submitted = !this.submitted;
+	  }
+	});
+  </script>
 </polymer-element>

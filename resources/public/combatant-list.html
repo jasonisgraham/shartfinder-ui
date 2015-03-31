@@ -1,8 +1,8 @@
 <link rel="import" href="components/polymer/polymer.html">
 <link rel="import" href="combatant-card.html">
-	<link rel="import" href="x-websocket.html">
+<link rel="import" href="x-websocket.html">
 
-<polymer-element name="combatant-list" attributes="combatants">
+<polymer-element name="combatant-list" attributes="combatants show">
   <template>
     <style>
     :host {
@@ -17,10 +17,14 @@
 	
 	<div layout vertical center>
 	
-	  <input type="text" value="{{combatantName}}"> <button on-click="{{addCombatant}}">Add Combatant</button>
+	  <input type="text" value="{{combatantName}}" hidden?="{{show != 'add-combatant'}}"> <button on-click="{{addCombatant}}"  hidden?="{{show != 'add-combatant'}}">Add Combatant</button>
 
 	  <template repeat="{{combatant in combatants}}">
-		<combatant-card>
+		<combatant-card 
+		selected="{{combatant.selected}}"
+		  show="{{show}}"
+		  combatantName="{{combatant.combatantName}}"
+		  hidden?="{{show == 'initiative' && !combatant.selected}}">
 		  {{combatant.combatantName}}
 		</combatant-card>
 	  </template>
@@ -31,6 +35,12 @@
 
   <script>
   Polymer({
+   publish: {
+		show: {
+			value: "add-combatant",
+			reflect: true
+		}
+	  },
   created: function() {
       this.combatants = [];
     },

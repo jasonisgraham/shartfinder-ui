@@ -1,0 +1,35 @@
+<link rel="import" href="components/polymer/polymer.html">
+<link rel="import" href="x-websocket.html">
+
+<polymer-element name="start-encounter">
+  <template>
+    <style>
+    :host {
+      display: block;
+      position: relative;
+      padding: 20px;
+      width: 100%;
+    }
+    </style>
+
+	<div layout vertical>
+		<button on-click="{{startEncounter}}" hidden?="{{!show}}">Start Encounter</button>
+	</div>
+    
+  </template>
+  <script>
+	Polymer({
+	  publish: {
+		show: {
+		  value: true,
+		  reflect: true
+		}
+	  },
+	  startEncounter: function() {
+		var startEncounterData = { eventName: "start-encounter" };
+		var xws = document.querySelector("x-websocket");
+		xws.send(startEncounterData);
+	  }
+	});
+  </script>
+</polymer-element>

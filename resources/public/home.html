@@ -12,6 +12,7 @@
 	</script>
 
 	<link rel="import" href="combatant-list.html">
+	<link rel="import" href="start-encounter.html">
 	<link rel="import" href="x-websocket.html">
 	
 	<style>
@@ -39,6 +40,8 @@
 	<div class="container" layout vertical center>
 
 	<x-websocket json></x-websocket>
+	
+	<start-encounter></start-encounter>
 		
 		<combatant-list></combatant-list>
 	</div>
@@ -47,9 +50,25 @@
 	window.addEventListener('polymer-ready', function(e) {
 			var xws = document.querySelector("x-websocket");
 			var cl = document.querySelector("combatant-list");
+			var se = document.querySelector("start-encounter");
 			xws.addEventListener("message", function(event) {
 				console.log("message", event.detail.data);
-				cl.combatants.push(event.detail.data.payload);
+				  var eventName = event.detail.data.eventName;
+				  var payload = event.detail.data.payload;
+					if (eventName === "add-combatant"){
+						cl.combatants.push(payload);
+					} 
+					if (eventName === "start-encounter"){
+						se.show = false;
+						cl.show = 'initiative';
+					} 
+					if (eventName === "initiative-created"){
+						cl.combatants = [];
+						for (var key in payload.orderedCombatants) {
+							cl.combatants.push(payload.orderedCombatants[key]);
+						} 
+						cl.show = 'round-started';
+					}
 			});
 		});
 	</script>
