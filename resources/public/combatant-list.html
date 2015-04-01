@@ -30,7 +30,7 @@
 		  user="{{user}}"
 		  combatantName="{{combatant.combatantName}}"
 		  mine="{{combatant.mine}}"
-		  hidden?="{{!show || (showView == 'initiative' && !combatant.selected)}}">
+		  hidden?="{{!show || (showView == 'initiative' && !combatant.mine)}}">
 		  {{combatant.combatantName}}
 		</combatant-card>
 	  </template>

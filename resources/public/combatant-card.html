@@ -56,7 +56,7 @@
 		}
 	  },
 	  selectedTapped: function() {
-		  if (!this.selected){
+		  if (!this.selected && !this.mine){
 			var addCombatantData = { data: { combatantName: this.combatantName, user: this.user }, eventName: "add-combatant" };
 			var xws = document.querySelector("x-websocket");
 			xws.send(addCombatantData);
