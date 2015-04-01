@@ -12,6 +12,7 @@
 	</script>
 
 	<link rel="import" href="combatant-list.html">
+	<link rel="import" href="log-in.html">
 	<link rel="import" href="start-encounter.html">
 	<link rel="import" href="x-websocket.html">
 	
@@ -38,6 +39,8 @@
 <body unresolved>
 	
 	<div class="container" layout vertical center>
+	
+	<log-in></log-in>
 
 	<x-websocket json></x-websocket>
 	
@@ -49,25 +52,50 @@
 	<script>
 	window.addEventListener('polymer-ready', function(e) {
 			var xws = document.querySelector("x-websocket");
+			var li = document.querySelector("log-in");
 			var cl = document.querySelector("combatant-list");
 			var se = document.querySelector("start-encounter");
+			li.addEventListener('logged-in', function(){
+				li.show = false;
+				cl.show = true;
+				cl.user = li.user;
+				se.show = true;
+			});
 			xws.addEventListener("message", function(event) {
 				console.log("message", event.detail.data);
 				  var eventName = event.detail.data.eventName;
 				  var payload = event.detail.data.payload;
 					if (eventName === "add-combatant"){
-						cl.combatants.push(payload);
+					var isMine = payload.user === li.user;
+					  var containsKey = false;
+						for (var key in cl.combatants) {
+							if (cl.combatants[key].combatantName === payload.combatantName){
+								cl.combatants[key].selected = true;
+								if (isMine){
+									cl.combatants[key].mine = true;
+								}
+								containsKey = true;
+								break;
+							}
+						} 
+						if (!containsKey){
+							var key = cl.combatants.push(payload) - 1;
+							cl.combatants[key].selected = true;
+							if (isMine){
+								cl.combatants[key].mine = true;
+							}
+						}
 					} 
 					if (eventName === "start-encounter"){
 						se.show = false;
-						cl.show = 'initiative';
+						cl.showView = 'initiative';
 					} 
 					if (eventName === "initiative-created"){
 						cl.combatants = [];
 						for (var key in payload.orderedCombatants) {
 							cl.combatants.push(payload.orderedCombatants[key]);
 						} 
-						cl.show = 'round-started';
+						cl.showView = 'round-started';
 					}
 			});
 		});

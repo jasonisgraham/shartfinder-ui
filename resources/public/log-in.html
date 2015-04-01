@@ -1,7 +1,6 @@
 <link rel="import" href="components/polymer/polymer.html">
-<link rel="import" href="x-websocket.html">
 
-<polymer-element name="start-encounter">
+<polymer-element name="log-in" attributes="user show">
   <template>
     <style>
     :host {
@@ -13,7 +12,7 @@
     </style>
 
 	<div layout vertical>
-		<button on-click="{{startEncounter}}" hidden?="{{!show}}">Start Encounter</button>
+		 <input type="text" value="{{user}}" hidden?="{{!show}}"> <button on-click="{{submitUserId}}" hidden?="{{!show}}">Submit User Id</button>
 	</div>
     
   </template>
@@ -21,14 +20,12 @@
 	Polymer({
 	  publish: {
 		show: {
-		  value: false,
+		  value: true,
 		  reflect: true
 		}
 	  },
-	  startEncounter: function() {
-		var startEncounterData = { eventName: "start-encounter" };
-		var xws = document.querySelector("x-websocket");
-		xws.send(startEncounterData);
+	  submitUserId: function() {
+		this.fire('logged-in');
 	  }
 	});
   </script>
