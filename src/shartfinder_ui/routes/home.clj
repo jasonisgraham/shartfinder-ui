@@ -16,11 +16,11 @@
 (def clients (atom {}))
 (def combatants (atom #{}))
 
-(defn- ws-send-to-clients [event-name payload]
-  (println "ws-send-to-clients.  event-name: '" event-name "' payload: " payload)
+(defn- ws-send-to-clients [eventName payload]
+  (println "ws-send-to-clients.  eventName: '" eventName "' payload: " payload)
   (doseq [client @clients]
     (server/send! (key client)
-                  (generate-string {:event-name event-name
+                  (generate-string {:eventName eventName
                                     :payload payload})
                   false)))
 
@@ -76,11 +76,11 @@
     (server/on-receive con
                        (fn [context-str]
                          (let [context (parse-string context-str)
-                               event-name (context "eventName")]
+                               eventName (context "eventName")]
                            (cond
-                             (= "roll-initiative" event-name) (handle-roll-initiative-request context)
-                             (= "add-combatant" event-name) (handle-add-combatant-request context)
-                             (= "start-encounter" event-name) (handle-start-encounter-request context)
+                             (= "roll-initiative" eventName) (handle-roll-initiative-request context)
+                             (= "add-combatant" eventName) (handle-add-combatant-request context)
+                             (= "start-encounter" eventName) (handle-start-encounter-request context)
                              :else (println "not found")))))
 
     (server/on-close con (fn [status]

@@ -1,6 +1,7 @@
 <link rel="import" href="components/polymer/polymer.html">
+<link rel="import" href="components/core-icon-button/core-icon-button.html">
 
-<polymer-element name="combatant-card" noscript>
+<polymer-element name="combatant-card" attributes="showView combatantName selected mine submitted user">
   <template>
     <style>
     :host {
@@ -12,9 +13,61 @@
       font-size: 1.2rem;
       font-weight: 300;
     }
+	core-icon-button {
+	  position: absolute;
+	  top: 3px;
+	  right: 3px;
+	  color: #636363;
+	}
+	:host([selected]) core-icon-button {
+	  color: #FF0000;
+	}
+	:host([mine]) core-icon-button {
+	  color: #008000;
+	}
     </style>
+	
 
+	<core-icon-button
+	  hidden?="{{showView != 'add-combatant'}}"
+	  id="favicon"
+	  icon="add-circle"
+	  on-tap="{{selectedTapped}}">
+	</core-icon-button>
 	<content></content>
+	<div hidden?="{{showView != 'initiative' || !submitted}}">Submitted initiative, waiting for others...</div>
+	<input type="text" value="{{initiativeRoll}}" hidden?="{{showView != 'initiative' || submitted}}"> <button on-click="{{submitInitiative}}"  hidden?="{{showView != 'initiative' || submitted}}">Submit Initiative</button>
     
   </template>
+  <script>
+	Polymer({
+	  publish: {
+		selected: {
+		  value: false,
+		  reflect: true
+		},
+		submitted: {
+			value: false,
+			reflect: true
+		},
+		mine: {
+		value: false,
+		reflect: true
+		}
+	  },
+	  selectedTapped: function() {
+		  if (!this.selected && !this.mine){
+			var addCombatantData = { data: { combatantName: this.combatantName, user: this.user }, eventName: "add-combatant" };
+			var xws = document.querySelector("x-websocket");
+			xws.send(addCombatantData);
+		 }
+	  },
+	  submitInitiative: function(){
+		var submitInitiativeData = { data: { combatantName: this.combatantName, diceRoll : this.initiativeRoll, user: this.user }, eventName: "roll-initiative" };
+		var xws = document.querySelector("x-websocket");
+		xws.send(submitInitiativeData);
+		this.submitted = !this.submitted;
+	  }
+	});
+  </script>
 </polymer-element>

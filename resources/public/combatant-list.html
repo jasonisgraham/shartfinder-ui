@@ -1,8 +1,9 @@
 <link rel="import" href="components/polymer/polymer.html">
 <link rel="import" href="combatant-card.html">
-	<link rel="import" href="x-websocket.html">
+<link rel="import" href="combatant-service.html">
+<link rel="import" href="x-websocket.html">
 
-<polymer-element name="combatant-list" attributes="combatants">
+<polymer-element name="combatant-list" attributes="combatants showView show user">
   <template>
     <style>
     :host {
@@ -13,14 +14,23 @@
       margin-top: 30px;
     }
     </style>
+	
+	<combatant-service id="service" combatants="{{combatants}}">
+	</combatant-service>
 
 	
 	<div layout vertical center>
 	
-	  <input type="text" value="{{combatantName}}"> <button on-click="{{addCombatant}}">Add Combatant</button>
+	  <input type="text" value="{{combatantName}}" hidden?="{{!show || showView != 'add-combatant'}}"> <button on-click="{{addCombatant}}"  hidden?="{{!show || showView != 'add-combatant'}}">Add Combatant</button>
 
 	  <template repeat="{{combatant in combatants}}">
-		<combatant-card>
+		<combatant-card 
+		selected="{{combatant.selected}}"
+		  showView="{{showView}}"
+		  user="{{user}}"
+		  combatantName="{{combatant.combatantName}}"
+		  mine="{{combatant.mine}}"
+		  hidden?="{{!show || (showView == 'initiative' && !combatant.mine)}}">
 		  {{combatant.combatantName}}
 		</combatant-card>
 	  </template>
@@ -31,13 +41,29 @@
 
   <script>
   Polymer({
-  created: function() {
-      this.combatants = [];
-    },
+   publish: {
+		show: {
+			value: false,
+			reflect: true
+		},
+		showView: {
+			value: "add-combatant",
+			reflect: true
+		}
+	  },
 	addCombatant: function() {
-		var addCombatantData = { data: { combatantName: this.combatantName}, eventName: "add-combatant" };
-		var xws = document.querySelector("x-websocket");
-		xws.send(addCombatantData);
+		var containsKey = false;
+		for (var key in this.combatants) {
+			if (this.combatants[key].combatantName === this.combatantName) {
+				containsKey = true;
+				break;
+			}
+		}
+		if (!containsKey){
+			var addCombatantData = { data: { combatantName: this.combatantName, user: this.user }, eventName: "add-combatant" };
+			var xws = document.querySelector("x-websocket");
+			xws.send(addCombatantData);
+		}
 		this.combatantName = '';
 	  }
 	});

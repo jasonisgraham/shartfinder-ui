@@ -1,0 +1,33 @@
+<link rel="import" href="components/polymer/polymer.html">
+<link rel="import" href="combatant-service.html">
+
+<polymer-element name="add-combatant">
+  <template>
+    <style>
+    :host {
+      display: block;
+      width: 100%;
+      margin-bottom: 30px;
+    }
+    </style>
+    
+	<combatant-service id="service">
+	</combatant-service>
+	
+	<div layout vertical center>
+
+	  <input type="text" value="{{combatantName}}"> <button on-click="{{addCombatant}}">Add Combatant</button>
+
+	</div>
+	
+  </template>
+
+  <script>
+  Polymer({
+	  addCombatant: function() {
+		this.$.service.addCombatant(this.combatantName);
+	  }
+	});
+  </script>
+
+</polymer-element>

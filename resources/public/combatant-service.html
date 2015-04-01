@@ -1,0 +1,29 @@
+<link rel="import" href="components/polymer/polymer.html">
+<link rel="import" href="components/core-ajax/core-ajax.html">
+<link rel="import" href="x-websocket.html">
+
+<polymer-element name="combatant-service" attributes="combatants">
+  <template>
+    <style>
+    :host {
+      display: none;
+    }
+    </style>
+    <core-ajax id="ajax"
+      auto
+      url="json/combatants.json"
+      on-core-response="{{combatantsLoaded}}"
+      handleAs="json">
+    </core-ajax>
+  </template>
+  <script>
+  Polymer('combatant-service', {
+    created: function() {
+      this.combatants = [];
+    },
+    combatantsLoaded: function() {
+      this.combatants = this.$.ajax.response.slice(0);
+    }
+  });
+  </script>
+</polymer-element>

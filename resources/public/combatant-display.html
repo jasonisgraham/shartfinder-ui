@@ -1,0 +1,41 @@
+<link rel="import" href="components/polymer/polymer.html">
+	<link rel="import" href="combatant-list.html">
+	<link rel="import" href="x-websocket.html">
+	
+<polymer-element name="combatant-display">
+  <template>
+    <style>
+    :host {
+      display: block;
+      width: 100%;
+    }
+    </style>
+
+	
+	<div layout vertical center>
+	
+	  <x-websocket url="ws://128.237.230.62:5000/ws" json></x-websocket>
+		
+		<combatant-list></combatant-list>
+
+	</div>
+	
+  </template>
+
+  <script>
+  Polymer({
+  created: function() {
+      this.websocketUrl = '';
+    }
+	});
+	window.addEventListener('polymer-ready', function(e) {
+			var xws = document.querySelector("x-websocket");
+			var cl = document.querySelector("combatant-list");
+			xws.addEventListener("message", function(event) {
+				console.log("message", event.detail.data);
+				cl.combatants.push(event.detail.data.payload);
+			});
+		});
+  </script>
+
+</polymer-element>
