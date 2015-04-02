@@ -12,12 +12,16 @@
     </style>
 
 	<div layout vertical>
-		 <input type="text" value="{{user}}" hidden?="{{!show}}"> <button on-click="{{submitUserId}}" hidden?="{{!show}}">Submit User Id</button>
-	</div>
+		 <input id="nameField" type="text" value="{{user}}" hidden?="{{!show}}">
+		 <button on-click="{{submitUserId}}" hidden?="{{!show}}">Submit User Id</button>
+	</div>.
     
   </template>
   <script>
 	Polymer({
+	 ready: function() {
+	 this.$.nameField.focus();
+	 },
 	  publish: {
 		show: {
 		  value: true,
@@ -25,7 +29,9 @@
 		}
 	  },
 	  submitUserId: function() {
-		this.fire('logged-in');
+		if (this.user){
+			this.fire('logged-in');
+		}
 	  }
 	});
   </script>

@@ -65,8 +65,8 @@
 				console.log("message", event.detail.data);
 				  var eventName = event.detail.data.eventName;
 				  var payload = event.detail.data.payload;
+				 var isMine = payload.user === li.user;
 					if (eventName === "add-combatant"){
-					var isMine = payload.user === li.user;
 					  var containsKey = false;
 						for (var key in cl.combatants) {
 							if (cl.combatants[key].combatantName === payload.combatantName){
@@ -96,6 +96,16 @@
 							cl.combatants.push(payload.orderedCombatants[key]);
 						} 
 						cl.showView = 'round-started';
+					}
+					if (eventName === "roll-initiative"){
+						for (var key in cl.combatants) {
+							if (cl.combatants[key].combatantName === payload.combatantName){
+								if (isMine){
+									cl.combatants[key].submitted = true;
+								}
+								break;
+							}
+						}
 					}
 			});
 		});

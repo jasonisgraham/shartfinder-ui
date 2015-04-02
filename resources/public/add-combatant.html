@@ -1,0 +1,30 @@
+<link rel="import" href="components/polymer/polymer.html">
+
+<polymer-element name="add-combatant">
+  <template>
+    <style>
+    :host {
+      display: block;
+      width: 100%;
+    }
+    </style>
+
+	
+	<div layout vertical center>
+	
+	  <input type="text" value="{{addCombatantName}}">
+	  <button on-click="{{addCombatant}}">Add Combatant</button>
+
+	</div>
+	
+  </template>
+
+  <script>
+  Polymer({
+	addCombatant: function() {
+		this.fire('combatant-add');
+	  }
+	});
+  </script>
+
+</polymer-element>
