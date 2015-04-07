@@ -132,11 +132,22 @@
   :etag "fixed-etag"
   :available-media-types ["text/html"])
 
+(defresource clear-in-memory-data
+  :service-available? true
+  :allowed-methods [:get]
+  :available-media-types ["application/json"]
+  :handle-ok (do (reset! users (db/get-all-users))
+                 (reset! combatants #{})
+                 (wcar* (car/publish (:encounter-created channels)
+                                     (generate-string {})))
+                 nil))
+
 (defroutes home-routes
   (ANY "/" request home)
   (ANY "/test" request home-test)
   (ANY "/add-user" request add-user)
-  (ANY "/users" request get-users))
+  (ANY "/users" request get-users)
+  (ANY "/clear-in-memory-data" request clear-in-memory-data))
 
 (defroutes ws-routes
   (GET "/ws" [] ws))
