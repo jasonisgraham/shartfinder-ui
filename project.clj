@@ -14,7 +14,8 @@
                  [ring/ring-devel "1.3.1"]
                  [ring/ring-defaults "0.1.4"]
                  [clj-http "1.0.1"]
-                 [lib-noir "0.9.5"]]
+                 [lib-noir "0.9.5"]
+                 [danlentz/clj-uuid "0.1.5"]]
 
   :min-lein-version "2.0.0"
 
