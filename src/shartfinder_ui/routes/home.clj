@@ -8,13 +8,35 @@
             [taoensso.carmine :as car :refer (wcar)]
             [clojure.java.io :refer [file]]
             [noir.io :as io]
-            [shartfinder-ui.common :refer :all]))
-
-(def ^:private encounter-id 69)
+            [shartfinder-ui.common :refer :all]
+            [carica.core :refer [config]]
+            [clj-http.client :as client]
+            [clj-uuid :as uuid]))
 
 (def users (atom (db/get-all-users)))
 (def clients (atom {}))
 (def combatants (atom #{}))
+(def encounter-id (atom nil))
+
+(defn initiative-created? []
+  "FIXME: i dont want to ping initiative service for this info do i?"
+  (let [url (str (:initiative service-urls))
+        response (client/get url {:throw-exceptions false})
+        ordered-initiative (:ordered-initiative (parse-string (:body response) true))]
+    (not (empty? ordered-initiative))))
+
+(defn encounter-created? []
+  (not (nil? @encounter-id)))
+
+(defn get-encounter-phase
+  ([encounter-id]
+   "TODO not implemented"
+   (get-encounter-phase))
+  ([]
+   (cond
+     (initiative-created?) "round"
+     (encounter-created?) "initiative"
+     :else nil)))
 
 (defn- ws-send-to-clients [eventName payload]
   (println "ws-send-to-clients.  eventName: '" eventName "' payload: " payload)
@@ -54,20 +76,19 @@
 (defn- handle-initiative-created-reponse [initiative-created-payload]
   (ws-send-to-clients "initiative-created" initiative-created-payload))
 
-(defn- handle-start-encounter-request [_]
+(defn handle-start-encounter-request [_]
   (println "handling start encounter")
   (println "combatants:" @combatants)
-  (let [payload {:encounterId encounter-id
+  ;; FIXME
+  (reset! encounter-id (uuid/v1))
+  (let [payload {:encounterId @encounter-id
                  :combatants @combatants}]
+
     (println "start-encounter payload: " payload)
     (wcar* (car/publish (:encounter-created channels)
                         (generate-string payload))))
 
   (ws-send-to-clients "start-encounter" {:combatants @combatants}))
-
-;; (defn- handle-start-encounter-on-success [_]
-;; (map #(assoc {} (:combatantName %) %) @combatants)
-;;   )
 
 (defn ws [request]
   (server/with-channel request con
@@ -121,8 +142,17 @@
   :handle-ok (fn [{{{ resource :resource} :route-params } :request}]
                (clojure.java.io/input-stream (io/get-resource "/home.html"))))
 
-
 (defresource home-test
+  :service-available? true
+  :allowed-methods [:get]
+  :handle-service-not-available "service not available, yo!"
+  :handle-ok (do (reset! users (db/get-all-users))
+                 (reset! combatants #{})
+                 (layout/main))
+  :etag "fixed-etag"
+  :available-media-types ["text/html"])
+
+(defresource home-test-2
   :service-available? true
   :allowed-methods [:get]
   :handle-service-not-available "service not available, yo!"
@@ -145,12 +175,16 @@
 (defroutes home-routes
   (ANY "/" request home)
   (ANY "/test" request home-test)
+  (ANY "/test-2" request home-test-2)
   (ANY "/add-user" request add-user)
   (ANY "/users" request get-users)
-  (ANY "/clear-in-memory-data" request clear-in-memory-data))
+  (ANY "/clear-in-memory-data" request clear-in-memory-data)
+  (ANY "/get-encounter-phase" request get-encounter-phase))
 
 (defroutes ws-routes
   (GET "/ws" [] ws))
+
+
 
 (defonce listener
   (car/with-new-pubsub-listener (:spec server-connection)
@@ -161,3 +195,6 @@
     (car/subscribe (:initiative-created channels)
                    (:combatant-added channels)
                    (:initative-rolled channels))))
+
+
+;; {encounterPhase: "combatants", combatant: info, initiative: info, ... }
