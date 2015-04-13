@@ -1,4 +1,4 @@
-(ns shartfinder-ui.test.routes.home-test
+(ns shartfinder-ui.routes.home-test
   (:use clojure.test
         shartfinder-ui.routes.home))
 

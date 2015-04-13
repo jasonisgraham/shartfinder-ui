@@ -8,10 +8,10 @@
    [:head
     [:title "Shartfinder Test"]
     (include-js "https://code.jquery.com/jquery-2.1.3.js")
-    (include-js "/js/home-2.js")
+    (include-js "/js/home.js")
     (include-css "/css/screen.css")
     [:script
-     "function clearInMemoryData() { $.get('clear-in-memory-data'); };"]]
+     "function clearInMemoryData() { $.get('in-memory-data/clear'); };"]]
    [:body body]
    [:button {:onclick "clearInMemoryData()"} "Reset In Memory Data (deletes combatants and resets users)"]))
 
