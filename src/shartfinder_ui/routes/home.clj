@@ -100,6 +100,12 @@
       (wcar* (car/publish (:add-combatant-command channels)
                           (generate-string payload))))))
 
+;; this is here cuz combatant service doesn't exist yet
+(defn- handle-add-combatant-request [context]
+  (println "in service-placeholders handle-add-combatant-request")
+  (wcar* (car/publish (:combatant-added channels)
+                      (generate-string context))))
+
 (defn- handle-combatant-added [combatant-payload]
   (swap! combatants conj combatant-payload)
   (ws-send-encounter-status-to-clients "combatant-added"))
@@ -224,10 +230,14 @@
      (:initiative-rolled channels) (handle-pubsub-subscribe handle-initiative-rolled)
      (:round-started channels) (handle-pubsub-subscribe handle-round-started)
      (:turn-started channels) (handle-pubsub-subscribe handle-turn-started)
+     ;; this is here cuz combatant service doesn't exist yet
+     (:add-combatant-command channels) (handle-pubsub-subscribe handle-add-combatant-request)
      }
 
     (car/subscribe (:initiative-created channels)
                    (:combatant-added channels)
                    (:initiative-rolled channels)
                    (:round-started channels)
-                   (:turn-started channels))))
+                   (:turn-started channels)
+                   ;; this is here cuz combatant service doesn't exist yet
+                   (:add-combatant-command channels))))
