@@ -62,6 +62,7 @@
 
 (defn- ws-send-encounter-status-to-clients [event-name]
   (let [payload (construct-encounter-payload event-name)]
+    (println "ws-send-encounter-status-to-clients ... payload: " payload)
     (ws-send-to-clients event-name (generate-string payload))))
 
 ;; (defn- handle-roll-initiative-request [context]
@@ -77,7 +78,7 @@
 ;;   (swap! initiative-rolls conj initiative-payload)
 ;;   (ws-send-to-clients "roll-initiative" (construct-encounter-payload "roll-initiative")))
 
-(defn- handle-add-combatant-request [context]
+(defn- handle-add-combatant-command [context]
   (let [payload {:maxHP (get-in context ["data" "maxHP"])
                  :combatantName (get-in context ["data" "combatantName"])
                  :user (get-in context ["data" "user"])}]
@@ -87,10 +88,10 @@
       (wcar* (car/publish (:combatant-added channels)
                           (generate-string payload))))))
 
-(defn- handle-add-combatant-response [combatant-payload]
+(defn- handle-combatant-added [combatant-payload]
   (swap! combatants conj combatant-payload)
-  (ws-send-encounter-status-to-clients "add-combatant")
-  ;; (ws-send-to-clients "add-combatant" combatant-payload)
+  (ws-send-encounter-status-to-clients "combatant-added")
+  ;; (ws-send-to-clients "combatant-added" combatant-payload)
   )
 
 ;; (defn- handle-initiative-created-reponse [initiative-created-payload]
@@ -121,8 +122,9 @@
                                event-name (context "eventName")]
                            (println "event-name: " event-name)
                            (cond
-                             (= "add-combatant" event-name) (handle-add-combatant-request context)
-                             (= "start-encounter" event-name) (handle-start-encounter-request context)
+                             (= "add-combatant-command" event-name) (handle-add-combatant-command context)
+                             ;; (= "start-encounter" event-name)
+                             ;; (handle-start-encounter-request context)
                              ;; (= "roll-initiative" event-name) (handle-roll-initiative-request context)
                              :else (println "not found")))))
 
@@ -206,7 +208,7 @@
   (car/with-new-pubsub-listener (:spec server-connection)
     {;; (:initiative-created channels)
      ;; (handle-pubsub-subscribe handle-initiative-created-reponse)
-     (:combatant-added channels) (handle-pubsub-subscribe handle-add-combatant-response)
+     (:combatant-added channels) (handle-pubsub-subscribe handle-combatant-added)
      ;; (:initiative-rolled channels)
      ;; (handle-pubsub-subscribe handle-roll-initiative-response)
      }
