@@ -16,7 +16,7 @@ socket.onmessage = function(event) {
   console.log("JSON.stringify(payload): " + JSON.stringify(payload));
   if ("add-user" == eventName) {
     renderUsers(payload);
-  } else if ("roll-initiative" == eventName) {
+  } else if ("initiative-rolled" == eventName) {
     renderInitiative(payload);
   } else if ("combatant-added" == eventName) {
     renderCombatants(payload);
@@ -106,7 +106,7 @@ function rollInitiative() {
   initiativeRolledData = { data: { user: user,
                                    combatantName: combatantName,
                                    diceRoll: diceRoll},
-                           eventName: "roll-initiative" },
+                           eventName: "roll-initiative-command" },
   initiativeRolledDataString = JSON.stringify(initiativeRolledData);
   socket.send(initiativeRolledDataString);
 }

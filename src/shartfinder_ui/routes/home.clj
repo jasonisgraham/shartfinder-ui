@@ -65,18 +65,19 @@
     (println "ws-send-encounter-status-to-clients ... payload: " payload)
     (ws-send-to-clients event-name (generate-string payload))))
 
-;; (defn- handle-roll-initiative-request [context]
-;;   (let [initiative-info {:diceRoll (get-in context ["data" "diceRoll"])
-;;                          :combatantName (get-in context ["data" "combatantName"])
-;;                          :user (get-in context ["data" "user"])}]
-;;     (println "payload: " initiative-info)
+(defn- handle-roll-initiative-command [context]
+  (let [initiative-info {:diceRoll (get-in context ["data" "diceRoll"])
+                         :combatantName (get-in context ["data" "combatantName"])
+                         :user (get-in context ["data" "user"])}]
+    (println "handle-roll-initiative-command ... payload: " initiative-info)
 
-;;     (wcar* (car/publish (:roll-initiative-command channels)
-;;                         (generate-string initiative-info)))))
+    (wcar* (car/publish (:roll-initiative-command channels)
+                        (generate-string initiative-info)))))
 
-;; (defn- handle-roll-initiative-response [initiative-payload]
-;;   (swap! initiative-rolls conj initiative-payload)
-;;   (ws-send-to-clients "roll-initiative" (construct-encounter-payload "roll-initiative")))
+(defn- handle-initiative-rolled [initiative-payload]
+  (println "handle-initiative-rolled: payload ... " initiative-payload)
+  (swap! initiative-rolls conj initiative-payload)
+  (ws-send-encounter-status-to-clients "initiative-rolled"))
 
 (defn- handle-add-combatant-command [context]
   (let [payload {:maxHP (get-in context ["data" "maxHP"])
@@ -92,8 +93,8 @@
   (swap! combatants conj combatant-payload)
   (ws-send-encounter-status-to-clients "combatant-added"))
 
-;; (defn- handle-initiative-created-reponse [initiative-created-payload]
-;;   (ws-send-to-clients "initiative-created" initiative-created-payload))
+(defn- handle-initiative-created-reponse [initiative-created-payload]
+  (ws-send-to-clients "initiative-created" initiative-created-payload))
 
 (defn handle-start-encounter-command [_]
   (println "handling start encounter")
@@ -122,8 +123,8 @@
                            (cond
                              (= "add-combatant-command" event-name) (handle-add-combatant-command context)
                              (= "start-encounter" event-name) (handle-start-encounter-command context)
-                             ;; (= "roll-initiative" event-name) (handle-roll-initiative-request context)
-                             :else (println "not found")))))
+                             (= "roll-initiative-command" event-name) (handle-roll-initiative-command context)
+                             :else (println "event-name: '" event-name "' not expected")))))
 
     (server/on-close con (fn [status]
                            (swap! clients dissoc con)
@@ -186,6 +187,7 @@
   :handle-ok (do (reset! users (db/get-all-users))
                  (reset! combatants #{})
                  (reset! encounter-id nil)
+                 (reset! initiative-rolls #{})
                  (wcar* (car/publish (:encounter-created channels)
                                      (generate-string {})))
                  nil))
@@ -204,11 +206,12 @@
 
 (defonce listener
   (car/with-new-pubsub-listener (:spec server-connection)
-    {;; (:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created-reponse)
+    {
+     (:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created-reponse)
      (:combatant-added channels) (handle-pubsub-subscribe handle-combatant-added)
-     ;; (:initiative-rolled channels) (handle-pubsub-subscribe handle-roll-initiative-response)
+     (:initiative-rolled channels) (handle-pubsub-subscribe handle-initiative-rolled)
      }
 
     (car/subscribe (:initiative-created channels)
                    (:combatant-added channels)
-                   (:initative-rolled channels))))
+                   (:initiative-rolled channels))))
