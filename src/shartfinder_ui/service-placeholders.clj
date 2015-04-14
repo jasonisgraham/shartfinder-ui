@@ -1,11 +1,12 @@
 (ns shartfinder-ui.service-placeholders
   (:require [shartfinder-ui.common :refer :all]
-            [taoensso.carmine :as car :refer (wcar)]))
+            [taoensso.carmine :as car :refer (wcar)]
+            [cheshire.core :refer [generate-string parse-string]]))
 
 (defn- handle-add-combatant-request [context]
   (println "in service-placeholders handle-add-combatant-request")
   (wcar* (car/publish (:combatant-added channels)
-                      context)))
+                      (generate-string context))))
 
 (defonce listener
   (car/with-new-pubsub-listener (:spec server-connection)

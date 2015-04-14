@@ -13,13 +13,13 @@
     [:script
      "function clearInMemoryData() { $.get('in-memory-data/clear'); };"]]
    [:body body]
-   [:button {:onclick "clearInMemoryData()"} "Reset In Memory Data (deletes combatants and resets users)"]))
+   ))
 
 (defn errors []
   (html5  [:p {:id "error"}]))
 
 (defn render-users []
-  (html5 [:div {:id "users-div"}
+  (html5 [:div {:id "users-div}"}
           [:h1 "Users"]
           [:ul {:id "user-list"}]
           [:input {:type "text", :id "name", :placeholder "user name"}]
@@ -29,7 +29,8 @@
           [:input {:type "password", :id "password-confirm", :placeholder "re-enter password"}]
           [:br]
           [:button {:id "add-user-button" :onclick "addUser()"} "Add User"]
-          [:button {:id "reset-users-button" :disabled true :onclick "resetUsers()"} "Reset Users"]]))
+          [:button {:id "reset-users-button" :disabled true :onclick "resetUsers()"} "Reset Users"]
+          ]))
 
 (defn render-combatants []
   (html5 [:div {:id "combatants-div"}
@@ -61,9 +62,11 @@
           [:h1 "Round"]
           [:ul {:id "round-order"}]]))
 
-(defn main []
+(defn main [initial-state]
   (common
-   (html5 (errors)
+   (html5 (when (not (nil? initial-state)) [:p "Initial State: " initial-state])
+          [:button {:onclick "clearInMemoryData()"} "Reset In Memory Data (deletes combatants and resets users)"]
+          (errors)
           (render-users)
           (render-combatants)
           (render-roll-initiative)

@@ -84,24 +84,22 @@
                  :user (get-in context ["data" "user"])}]
 
     (when-not (clojure.string/blank? (:combatantName payload))
-      (println "add-combatant-payload: " (generate-string payload))
-      (wcar* (car/publish (:combatant-added channels)
+      (println "add-combatant-command-payload: " (generate-string payload))
+      (wcar* (car/publish (:add-combatant-command channels)
                           (generate-string payload))))))
 
 (defn- handle-combatant-added [combatant-payload]
   (swap! combatants conj combatant-payload)
-  (ws-send-encounter-status-to-clients "combatant-added")
-  ;; (ws-send-to-clients "combatant-added" combatant-payload)
-  )
+  (ws-send-encounter-status-to-clients "combatant-added"))
 
 ;; (defn- handle-initiative-created-reponse [initiative-created-payload]
 ;;   (ws-send-to-clients "initiative-created" initiative-created-payload))
 
-(defn handle-start-encounter-request [_]
+(defn handle-start-encounter-command [_]
   (println "handling start encounter")
   (println "combatants:" @combatants)
   ;; FIXME
-  (reset! encounter-id (uuid/v1))
+  (reset! encounter-id (.toString (uuid/v1)))
   (let [payload {:encounterId @encounter-id
                  :combatants @combatants}]
 
@@ -109,7 +107,7 @@
     (wcar* (car/publish (:encounter-created channels)
                         (generate-string payload))))
 
-  (ws-send-to-clients "start-encounter" {:combatants @combatants}))
+  (ws-send-encounter-status-to-clients "start-encounter"))
 
 (defn ws [request]
   (server/with-channel request con
@@ -123,8 +121,7 @@
                            (println "event-name: " event-name)
                            (cond
                              (= "add-combatant-command" event-name) (handle-add-combatant-command context)
-                             ;; (= "start-encounter" event-name)
-                             ;; (handle-start-encounter-request context)
+                             (= "start-encounter" event-name) (handle-start-encounter-command context)
                              ;; (= "roll-initiative" event-name) (handle-roll-initiative-request context)
                              :else (println "not found")))))
 
@@ -170,7 +167,7 @@
   :service-available? true
   :allowed-methods [:get]
   :handle-service-not-available "service not available, yo!"
-  :handle-ok (layout/main)
+  :handle-ok (layout/main (construct-encounter-payload))
   :etag "fixed-etag"
   :available-media-types ["text/html"])
 
@@ -188,6 +185,7 @@
   :available-media-types ["application/json"]
   :handle-ok (do (reset! users (db/get-all-users))
                  (reset! combatants #{})
+                 (reset! encounter-id nil)
                  (wcar* (car/publish (:encounter-created channels)
                                      (generate-string {})))
                  nil))
@@ -206,11 +204,9 @@
 
 (defonce listener
   (car/with-new-pubsub-listener (:spec server-connection)
-    {;; (:initiative-created channels)
-     ;; (handle-pubsub-subscribe handle-initiative-created-reponse)
+    {;; (:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created-reponse)
      (:combatant-added channels) (handle-pubsub-subscribe handle-combatant-added)
-     ;; (:initiative-rolled channels)
-     ;; (handle-pubsub-subscribe handle-roll-initiative-response)
+     ;; (:initiative-rolled channels) (handle-pubsub-subscribe handle-roll-initiative-response)
      }
 
     (car/subscribe (:initiative-created channels)
