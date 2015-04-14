@@ -18,6 +18,8 @@
 (def combatants (atom #{}))
 (def encounter-id (atom nil))
 (def initiative-rolls (atom #{}))
+(def round-info (atom {}))
+(def turn-info (atom {}))
 
 (defn initiative-created? []
   "FIXME: i dont want to ping initiative service for this info do i?"
@@ -50,7 +52,10 @@
     :encounterPhase encounter-phase
     :encounterId @encounter-id
     :combatants @combatants
-    :initiativeRolls @initiative-rolls}))
+    :initiativeRolls @initiative-rolls
+    ;; :whoHasntRolled nil
+    :roundStatus {:round @round-info
+                  :turn @turn-info}}))
 
 (defn- ws-send-to-clients [event-name payload]
   (println "ws-send-to-clients.  eventName: '" event-name "' payload: " payload)
@@ -78,6 +83,12 @@
   (println "handle-initiative-rolled: payload ... " initiative-payload)
   (swap! initiative-rolls conj initiative-payload)
   (ws-send-encounter-status-to-clients "initiative-rolled"))
+
+(defn- handle-round-started [context]
+  ;; (ws-send-encounter-status-to-clients "")
+  )
+
+(defn- handle-turn-started [context])
 
 (defn- handle-add-combatant-command [context]
   (let [payload {:maxHP (get-in context ["data" "maxHP"])
@@ -124,6 +135,7 @@
                              (= "add-combatant-command" event-name) (handle-add-combatant-command context)
                              (= "start-encounter" event-name) (handle-start-encounter-command context)
                              (= "roll-initiative-command" event-name) (handle-roll-initiative-command context)
+                             (= "get-encounter-data" event-name) (ws-send-encounter-status-to-clients nil)
                              :else (println "event-name: '" event-name "' not expected")))))
 
     (server/on-close con (fn [status]
@@ -210,8 +222,12 @@
      (:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created-reponse)
      (:combatant-added channels) (handle-pubsub-subscribe handle-combatant-added)
      (:initiative-rolled channels) (handle-pubsub-subscribe handle-initiative-rolled)
+     (:round-started channels) (handle-pubsub-subscribe handle-round-started)
+     (:turn-started channels) (handle-pubsub-subscribe handle-turn-started)
      }
 
     (car/subscribe (:initiative-created channels)
                    (:combatant-added channels)
-                   (:initiative-rolled channels))))
+                   (:initiative-rolled channels)
+                   (:round-started channels)
+                   (:turn-started channels))))

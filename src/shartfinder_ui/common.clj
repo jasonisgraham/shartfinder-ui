@@ -16,6 +16,10 @@
                :roll-initiative-command "roll-initiative-command"
                :initiative-created "initiative-created"
 
+
+               :round-started "round-started"
+               :turn-started "turn-started"
+
                :error "error"})
 
 (defmacro wcar* [& body]
