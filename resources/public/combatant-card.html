@@ -1,7 +1,7 @@
 <link rel="import" href="components/polymer/polymer.html">
 <link rel="import" href="components/core-icon-button/core-icon-button.html">
 
-<polymer-element name="combatant-card" attributes="showView combatantName selected mine submitted user">
+<polymer-element name="combatant-card" attributes="encounterPhase combatantName selected mine initiativeSubmitted user">
   <template>
     <style>
     :host {
@@ -29,14 +29,15 @@
 	
 
 	<core-icon-button
-	  hidden?="{{showView != 'add-combatant'}}"
+	  hidden?="{{encounterPhase != 'combatant'}}"
 	  id="favicon"
 	  icon="add-circle"
 	  on-tap="{{selectedTapped}}">
 	</core-icon-button>
 	<content></content>
-	<div hidden?="{{showView != 'initiative' || !submitted}}">Submitted initiative, waiting for others...</div>
-	<input type="text" value="{{initiativeRoll}}" hidden?="{{showView != 'initiative' || submitted}}"> <button on-click="{{submitInitiative}}"  hidden?="{{showView != 'initiative' || submitted}}">Submit Initiative</button>
+	<div hidden?="{{encounterPhase != 'initiative' || !initiativeSubmitted}}">Submitted initiative, waiting for others...</div>
+	<input type="text" value="{{initiativeRoll}}" hidden?="{{encounterPhase != 'initiative' || initiativeSubmitted}}"> 
+	<button on-click="{{submitInitiative}}"  hidden?="{{encounterPhase != 'initiative' || initiativeSubmitted}}">Submit Initiative</button>
     
   </template>
   <script>
@@ -46,27 +47,31 @@
 		  value: false,
 		  reflect: true
 		},
-		submitted: {
+		initiativeSubmitted: {
 			value: false,
 			reflect: true
 		},
 		mine: {
 			value: false,
 			reflect: true
+		},
+		encounterPhase: {
+			value: "",
+			reflect: true
 		}
 	  },
 	  selectedTapped: function() {
 		  if (!this.selected && !this.mine){
-			var addCombatantData = { data: { combatantName: this.combatantName, user: this.user }, eventName: "add-combatant" };
+			var addCombatantData = { data: { combatantName: this.combatantName, user: this.user }, eventName: "add-combatant-command" };
 			var xws = document.querySelector("x-websocket");
 			xws.send(addCombatantData);
 		 }
 	  },
 	  submitInitiative: function(){
-		var submitInitiativeData = { data: { combatantName: this.combatantName, diceRoll : this.initiativeRoll, user: this.user }, eventName: "roll-initiative" };
+		var submitInitiativeData = { data: { combatantName: this.combatantName, diceRoll : this.initiativeRoll, user: this.user }, eventName: "roll-initiative-command" };
 		var xws = document.querySelector("x-websocket");
 		xws.send(submitInitiativeData);
-		this.submitted = !this.submitted;
+		this.initiativeSubmitted = !this.initiativeSubmitted;
 	  }
 	});
   </script>
