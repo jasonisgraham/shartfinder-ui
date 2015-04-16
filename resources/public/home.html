@@ -73,13 +73,14 @@
 						var payloadCombatantName = payloadCombatants[payloadCombatantKey].combatantName;
 						for (var initiativeRollKey in initiativeRolls) {
 							if (initiativeRolls[initiativeRollKey].combatantName === payloadCombatantName){
-								payloadCombatants[payloadCombatantKey].initiativeSubmitted = true;
+								payloadCombatants[payloadCombatantKey].initiativeRoll = initiativeRolls[initiativeRollKey].initiative;
 								break;
 							}
 						}
 						for (var commonCombatantKey in commonCombatants) {
 							if (commonCombatants[commonCombatantKey].combatantName === payloadCombatantName){
 								commonCombatants[commonCombatantKey].user = payloadCombatants[payloadCombatantKey].user;
+								commonCombatants[commonCombatantKey].initiativeRoll = payloadCombatants[payloadCombatantKey].initiativeRoll;
 								payloadCombatantsToRemove.push(payloadCombatantKey);
 								break;
 							}
@@ -89,9 +90,12 @@
 						payloadCombatants.splice(payloadCombatantsToRemove[index], 1);
 					}
 					var combatants = commonCombatants.concat(payloadCombatants);
-					
+					if (encounterPhase === "round") {
+						combatantList.combatants = combatants.sort(function(a, b){return b.initiativeRoll - a.initiativeRoll});
+					} else {
+						combatantList.combatants = combatants;
+					}
 					combatantList.encounterPhase = encounterPhase;
-					combatantList.combatants = combatants;
 				}
 			});
 		});

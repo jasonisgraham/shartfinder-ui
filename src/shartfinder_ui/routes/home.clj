@@ -56,12 +56,12 @@
     ;; :whoHasntRolled nil
     :roundStatus {:round @round-info
                   :turn @turn-info}
-    :commonCombatants [{:combatantName "Fedortyutin", :user nil}
-                       {:combatantName "Silverballs", :user nil}
-                       {:combatantName "Krug", :user nil}
-                       {:combatantName "Gnomester", :user nil}
-                       {:combatantName "Meer-ak", :user nil} 
-                       {:combatantName "Corovar", :user nil}]}))
+    :commonCombatants [{:combatantName "Fedortyutin"}
+                       {:combatantName "Silverballs"}
+                       {:combatantName "Krug"}
+                       {:combatantName "Gnomester"}
+                       {:combatantName "Meer-ak"}
+                       {:combatantName "Corovar"}]}))
 
 (defn- ws-send-to-clients [event-name payload]
   (println "ws-send-to-clients.  eventName: '" event-name "' payload: " payload)
@@ -115,7 +115,7 @@
   (ws-send-encounter-status-to-clients "combatant-added"))
 
 (defn- handle-initiative-created-reponse [initiative-created-payload]
-  (ws-send-to-clients "initiative-created" initiative-created-payload))
+  (ws-send-encounter-status-to-clients "initiative-created" initiative-created-payload))
 
 (defn handle-start-encounter-command [_]
   (println "handling start encounter")
