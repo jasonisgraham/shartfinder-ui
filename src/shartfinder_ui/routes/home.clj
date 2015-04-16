@@ -115,7 +115,7 @@
   (ws-send-encounter-status-to-clients "combatant-added"))
 
 (defn- handle-initiative-created-reponse [initiative-created-payload]
-  (ws-send-encounter-status-to-clients "initiative-created" initiative-created-payload))
+  (ws-send-encounter-status-to-clients "initiative-created"))
 
 (defn handle-start-encounter-command [_]
   (println "handling start encounter")
