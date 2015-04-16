@@ -25,6 +25,7 @@
 		<template repeat="{{combatant in combatants}}">
 			<combatant-card 
 				selected="{{combatant.user != null}}"
+				available="{{combatant.user == null}}"
 				encounterPhase="{{encounterPhase}}"
 				user="{{user}}"
 				combatantName="{{combatant.combatantName}}"

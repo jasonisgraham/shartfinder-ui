@@ -55,7 +55,13 @@
     :initiativeRolls @initiative-rolls
     ;; :whoHasntRolled nil
     :roundStatus {:round @round-info
-                  :turn @turn-info}}))
+                  :turn @turn-info}
+    :commonCombatants [{:combatantName "Fedortyutin", :user nil}
+                       {:combatantName "Silverballs", :user nil}
+                       {:combatantName "Krug", :user nil}
+                       {:combatantName "Gnomester", :user nil}
+                       {:combatantName "Meer-ak", :user nil} 
+                       {:combatantName "Corovar", :user nil}]}))
 
 (defn- ws-send-to-clients [event-name payload]
   (println "ws-send-to-clients.  eventName: '" event-name "' payload: " payload)
