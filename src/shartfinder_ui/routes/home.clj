@@ -15,7 +15,7 @@
 
 (def users (atom (db/get-all-users)))
 (def clients (atom {}))
-(def combatants (atom #{}))
+(def combatants (atom []))
 (def encounter-id (atom nil))
 (def initiative-rolls (atom #{}))
 (def round-info (atom {}))
@@ -97,14 +97,12 @@
 
     (when-not (clojure.string/blank? (:combatantName payload))
       (println "add-combatant-command-payload: " (generate-string payload))
-      (wcar* (car/publish (:add-combatant-command channels)
+      ;; TODO publishing combatant-added b/c combatant service does not exist.
+      ;;     just assuming that it should be added
+      ;;     need to publish add-combatant-command when that service exists
+      ;;     so combatant trying to be added can be validated or whatever
+      (wcar* (car/publish (:combatant-added channels)
                           (generate-string payload))))))
-
-;; this is here cuz combatant service doesn't exist yet
-(defn- handle-add-combatant-request [context]
-  (println "in service-placeholders handle-add-combatant-request")
-  (wcar* (car/publish (:combatant-added channels)
-                      (generate-string context))))
 
 (defn- handle-combatant-added [combatant-payload]
   (swap! combatants conj combatant-payload)
@@ -203,7 +201,7 @@
   :allowed-methods [:get]
   :available-media-types ["application/json"]
   :handle-ok (do (reset! users (db/get-all-users))
-                 (reset! combatants #{})
+                 (reset! combatants [])
                  (reset! encounter-id nil)
                  (reset! initiative-rolls #{})
                  (wcar* (car/publish (:encounter-created channels)
@@ -224,20 +222,14 @@
 
 (defonce listener
   (car/with-new-pubsub-listener (:spec server-connection)
-    {
-     (:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created-reponse)
+    {(:initiative-created channels) (handle-pubsub-subscribe handle-initiative-created-reponse)
      (:combatant-added channels) (handle-pubsub-subscribe handle-combatant-added)
      (:initiative-rolled channels) (handle-pubsub-subscribe handle-initiative-rolled)
      (:round-started channels) (handle-pubsub-subscribe handle-round-started)
-     (:turn-started channels) (handle-pubsub-subscribe handle-turn-started)
-     ;; this is here cuz combatant service doesn't exist yet
-     (:add-combatant-command channels) (handle-pubsub-subscribe handle-add-combatant-request)
-     }
+     (:turn-started channels) (handle-pubsub-subscribe handle-turn-started)}
 
     (car/subscribe (:initiative-created channels)
                    (:combatant-added channels)
                    (:initiative-rolled channels)
                    (:round-started channels)
-                   (:turn-started channels)
-                   ;; this is here cuz combatant service doesn't exist yet
-                   (:add-combatant-command channels))))
+                   (:turn-started channels))))
