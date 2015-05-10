@@ -10,4 +10,5 @@
                 :password (System/getenv "REDIS_PASS")}}
 
  :service-urls {:combatant (System/getenv "SERVICE_URL_COMABATANT")
-                :initiative (System/getenv "SERVICE_URL_INITIATIVE")}}
+                :initiative (System/getenv "SERVICE_URL_INITIATIVE")
+                :round (System/getenv "SERVICE_URL_ROUND")}}
