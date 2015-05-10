@@ -54,7 +54,13 @@
     :combatants @combatants
     :initiativeRolls @initiative-rolls
     :roundStatus {:round @round-info
-                  :turn @turn-info}}))
+                  :turn @turn-info}
+    :commonCombatants [{:combatantName "Fedortyutin"}
+                       {:combatantName "Silverballs"}
+                       {:combatantName "Krug"}
+                       {:combatantName "Gnomester"}
+                       {:combatantName "Meer-ak"}
+                       {:combatantName "Corovar"}]}))
 
 (defn- ws-send-to-clients [event-name payload]
   (println "ws-send-to-clients.  eventName: '" event-name "' payload: " payload)

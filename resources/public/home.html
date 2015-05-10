@@ -40,7 +40,6 @@
 	<div class="container" layout vertical center>
 	
 		<x-websocket json></x-websocket>
-		<combatant-service></combatant-service>
 		
 		<log-in></log-in>	
 		<combatant-list></combatant-list>
@@ -66,18 +65,37 @@
 						encounterPhase = 'combatant';
 					}
 
-					var combatants = payload.combatants;
+					var payloadCombatants = payload.combatants;
+					var commonCombatants = payload.commonCombatants;
 					var initiativeRolls = payload.initiativeRolls;
-					for (var combatantKey in combatants) {
+					var payloadCombatantsToRemove = [];
+					for (var payloadCombatantKey in payloadCombatants) {
+						var payloadCombatantName = payloadCombatants[payloadCombatantKey].combatantName;
 						for (var initiativeRollKey in initiativeRolls) {
-							if (initiativeRolls[initiativeRollKey].combatantName === combatants[combatantKey].combatantName){
-								combatants[combatantKey].initiativeSubmitted = true;
+							if (initiativeRolls[initiativeRollKey].combatantName === payloadCombatantName){
+								payloadCombatants[payloadCombatantKey].initiativeRoll = initiativeRolls[initiativeRollKey].initiative;
+								break;
 							}
-						} 
-					} 
-					
+						}
+						for (var commonCombatantKey in commonCombatants) {
+							if (commonCombatants[commonCombatantKey].combatantName === payloadCombatantName){
+								commonCombatants[commonCombatantKey].user = payloadCombatants[payloadCombatantKey].user;
+								commonCombatants[commonCombatantKey].initiativeRoll = payloadCombatants[payloadCombatantKey].initiativeRoll;
+								payloadCombatantsToRemove.push(payloadCombatantKey);
+								break;
+							}
+						}
+					}
+					for (var index = payloadCombatantsToRemove.length - 1; index >= 0; index--){
+						payloadCombatants.splice(payloadCombatantsToRemove[index], 1);
+					}
+					var combatants = commonCombatants.concat(payloadCombatants);
+					if (encounterPhase === "round") {
+						combatantList.combatants = combatants.sort(function(a, b){return b.initiativeRoll - a.initiativeRoll});
+					} else {
+						combatantList.combatants = combatants;
+					}
 					combatantList.encounterPhase = encounterPhase;
-					combatantList.combatants = combatants;
 				}
 			});
 		});

@@ -17,6 +17,8 @@
 	  position: absolute;
 	  top: 3px;
 	  right: 3px;
+	}
+	:host([available]) core-icon-button {
 	  color: #636363;
 	}
 	:host([selected]) core-icon-button {
@@ -38,7 +40,6 @@
 	<div hidden?="{{encounterPhase != 'initiative' || !initiativeSubmitted}}">Submitted initiative, waiting for others...</div>
 	<input type="text" value="{{initiativeRoll}}" hidden?="{{encounterPhase != 'initiative' || initiativeSubmitted}}"> 
 	<button on-click="{{submitInitiative}}"  hidden?="{{encounterPhase != 'initiative' || initiativeSubmitted}}">Submit Initiative</button>
-    
   </template>
   <script>
 	Polymer({

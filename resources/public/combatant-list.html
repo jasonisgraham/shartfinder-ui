@@ -25,12 +25,13 @@
 		<template repeat="{{combatant in combatants}}">
 			<combatant-card 
 				selected="{{combatant.user != null}}"
+				available="{{combatant.user == null}}"
 				encounterPhase="{{encounterPhase}}"
 				user="{{user}}"
 				combatantName="{{combatant.combatantName}}"
 				mine="{{combatant.user === user}}"
-				initiativeSubmitted="{{combatant.initiativeSubmitted}}"
-				hidden?="{{encounterPhase != 'combatant' && (encounterPhase != 'initiative' || (encounterPhase === 'initiative' && combatant.user != user)) && encounterPhase != 'round'}}">
+				initiativeSubmitted="{{combatant.initiativeRoll != null}}"
+				hidden?="{{encounterPhase != 'combatant' && (encounterPhase != 'initiative' || (encounterPhase === 'initiative' && combatant.user != user)) && (encounterPhase != 'round' || (encounterPhase === 'round' && combatant.user == null))}}">
 					{{combatant.combatantName}}
 			</combatant-card>
 		</template>
