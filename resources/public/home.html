@@ -50,6 +50,7 @@
 			var xWebSocket = document.querySelector("x-websocket");
 			var logIn = document.querySelector("log-in");
 			var combatantList = document.querySelector("combatant-list");
+			var encounterPhase = "";
 			logIn.addEventListener('logged-in', function(){
 				logIn.show = false;
 				combatantList.user = logIn.user;
@@ -60,7 +61,7 @@
 				if (logIn.user){
 					console.log("message", event.detail.data);
 				    var payload = JSON.parse(event.detail.data.payload);
-					var encounterPhase = payload.encounterPhase;
+					encounterPhase = payload.encounterPhase;
 					if (!encounterPhase){
 						encounterPhase = 'combatant';
 					}

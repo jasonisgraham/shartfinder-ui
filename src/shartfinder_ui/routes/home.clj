@@ -53,7 +53,6 @@
     :encounterId @encounter-id
     :combatants @combatants
     :initiativeRolls @initiative-rolls
-    ;; :whoHasntRolled nil
     :roundStatus {:round @round-info
                   :turn @turn-info}
     :commonCombatants [{:combatantName "Fedortyutin"}
@@ -91,10 +90,14 @@
   (ws-send-encounter-status-to-clients "initiative-rolled"))
 
 (defn- handle-round-started [context]
-  ;; (ws-send-encounter-status-to-clients "")
-  )
+  (println "handle-round-started: " context)
+  (reset! round-info context)
+  (ws-send-encounter-status-to-clients "round-started"))
 
-(defn- handle-turn-started [context])
+(defn- handle-turn-started [context]
+  (println "handle-turn-started: " context)
+  (reset! turn-info context)
+  (ws-send-encounter-status-to-clients "turn-started"))
 
 (defn- handle-add-combatant-command [context]
   (let [payload {:maxHP (get-in context ["data" "maxHP"])
@@ -115,7 +118,8 @@
   (ws-send-encounter-status-to-clients "combatant-added"))
 
 (defn- handle-initiative-created-reponse [initiative-created-payload]
-  (ws-send-encounter-status-to-clients "initiative-created"))
+  (println "initiative-created-payload: " (generate-string initiative-created-payload))
+  (ws-send-to-clients "initiative-created" (generate-string initiative-created-payload)))
 
 (defn handle-start-encounter-command [_]
   (println "handling start encounter")
@@ -210,11 +214,14 @@
                  (reset! combatants [])
                  (reset! encounter-id nil)
                  (reset! initiative-rolls #{})
+                 (reset! round-info {})
+                 (reset! turn-info {})
                  (wcar* (car/publish (:encounter-created channels)
                                      (generate-string {})))
                  nil))
 
 (defroutes home-routes
+  (ANY "/http-test" request "hi")
   (ANY "/" request home)
   (ANY "/test" request home-test)
   (ANY "/add-user" request add-user)
@@ -239,3 +246,5 @@
                    (:initiative-rolled channels)
                    (:round-started channels)
                    (:turn-started channels))))
+
+;; (assoc-in state [:roundStatus :round] (cheshire.core/parse-string payload))
