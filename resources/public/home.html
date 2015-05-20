@@ -50,7 +50,7 @@
 			var xWebSocket = document.querySelector("x-websocket");
 			var logIn = document.querySelector("log-in");
 			var combatantList = document.querySelector("combatant-list");
-			var encounterPhase = "";
+			var lastEncounterPhase = "";
 			logIn.addEventListener('logged-in', function(){
 				logIn.show = false;
 				combatantList.user = logIn.user;
@@ -61,42 +61,47 @@
 				if (logIn.user){
 					console.log("message", event.detail.data);
 				    var payload = JSON.parse(event.detail.data.payload);
-					encounterPhase = payload.encounterPhase;
+					var encounterPhase = payload.encounterPhase;
 					if (!encounterPhase){
 						encounterPhase = 'combatant';
 					}
-
-					var payloadCombatants = payload.combatants;
-					var commonCombatants = payload.commonCombatants;
-					var initiativeRolls = payload.initiativeRolls;
-					var payloadCombatantsToRemove = [];
-					for (var payloadCombatantKey in payloadCombatants) {
-						var payloadCombatantName = payloadCombatants[payloadCombatantKey].combatantName;
-						for (var initiativeRollKey in initiativeRolls) {
-							if (initiativeRolls[initiativeRollKey].combatantName === payloadCombatantName){
-								payloadCombatants[payloadCombatantKey].initiativeRoll = initiativeRolls[initiativeRollKey].initiative;
-								break;
+					
+					if (encounterPhase != 'initiative' || lastEncounterPhase != encounterPhase){
+						var payloadCombatants = payload.combatants;
+						var commonCombatants = payload.commonCombatants;
+						var initiativeRolls = payload.initiativeRolls;
+						var payloadCombatantsToRemove = [];
+						for (var payloadCombatantKey in payloadCombatants) {
+							var payloadCombatantName = payloadCombatants[payloadCombatantKey].combatantName;
+							for (var initiativeRollKey in initiativeRolls) {
+								if (initiativeRolls[initiativeRollKey].combatantName === payloadCombatantName){
+									payloadCombatants[payloadCombatantKey].initiativeRoll = initiativeRolls[initiativeRollKey].initiative;
+									break;
+								}
+							}
+							for (var commonCombatantKey in commonCombatants) {
+								if (commonCombatants[commonCombatantKey].combatantName === payloadCombatantName){
+									commonCombatants[commonCombatantKey].user = payloadCombatants[payloadCombatantKey].user;
+									commonCombatants[commonCombatantKey].initiativeRoll = payloadCombatants[payloadCombatantKey].initiativeRoll;
+									payloadCombatantsToRemove.push(payloadCombatantKey);
+									break;
+								}
 							}
 						}
-						for (var commonCombatantKey in commonCombatants) {
-							if (commonCombatants[commonCombatantKey].combatantName === payloadCombatantName){
-								commonCombatants[commonCombatantKey].user = payloadCombatants[payloadCombatantKey].user;
-								commonCombatants[commonCombatantKey].initiativeRoll = payloadCombatants[payloadCombatantKey].initiativeRoll;
-								payloadCombatantsToRemove.push(payloadCombatantKey);
-								break;
-							}
+						for (var index = payloadCombatantsToRemove.length - 1; index >= 0; index--){
+							payloadCombatants.splice(payloadCombatantsToRemove[index], 1);
 						}
+						var combatants = commonCombatants.concat(payloadCombatants);
+						if (encounterPhase === "round") {
+							combatantList.combatants = combatants.sort(function(a, b){
+								return b.initiativeRoll - a.initiativeRoll
+							});
+						} else {
+							combatantList.combatants = combatants;
+						}
+						combatantList.encounterPhase = encounterPhase;
 					}
-					for (var index = payloadCombatantsToRemove.length - 1; index >= 0; index--){
-						payloadCombatants.splice(payloadCombatantsToRemove[index], 1);
-					}
-					var combatants = commonCombatants.concat(payloadCombatants);
-					if (encounterPhase === "round") {
-						combatantList.combatants = combatants.sort(function(a, b){return b.initiativeRoll - a.initiativeRoll});
-					} else {
-						combatantList.combatants = combatants;
-					}
-					combatantList.encounterPhase = encounterPhase;
+					lastEncounterPhase = encounterPhase;
 				}
 			});
 		});

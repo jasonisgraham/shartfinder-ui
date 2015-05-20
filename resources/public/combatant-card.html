@@ -37,9 +37,9 @@
 	  on-tap="{{selectedTapped}}">
 	</core-icon-button>
 	<content></content>
-	<div hidden?="{{encounterPhase != 'initiative' || !initiativeSubmitted}}">Submitted initiative, waiting for others...</div>
-	<input type="text" value="{{initiativeRoll}}" hidden?="{{encounterPhase != 'initiative' || initiativeSubmitted}}"> 
-	<button on-click="{{submitInitiative}}"  hidden?="{{encounterPhase != 'initiative' || initiativeSubmitted}}">Submit Initiative</button>
+	<div hidden?="{{encounterPhase != 'initiative' || (!initiativeSubmitted && !justSubmitted)}}">Submitted initiative, waiting for others...</div>
+	<input type="text" value="{{initiativeRoll}}" hidden?="{{encounterPhase != 'initiative' || initiativeSubmitted || justSubmitted}}"> 
+	<button on-click="{{submitInitiative}}"  hidden?="{{encounterPhase != 'initiative' || initiativeSubmitted || justSubmitted}}">Submit Initiative</button>
   </template>
   <script>
 	Polymer({
@@ -48,16 +48,12 @@
 		  value: false,
 		  reflect: true
 		},
-		initiativeSubmitted: {
-			value: false,
-			reflect: true
-		},
 		mine: {
 			value: false,
 			reflect: true
 		},
-		encounterPhase: {
-			value: "",
+		justSubmitted: {
+			value: false,
 			reflect: true
 		}
 	  },
@@ -72,7 +68,7 @@
 		var submitInitiativeData = { data: { combatantName: this.combatantName, diceRoll : this.initiativeRoll, user: this.user }, eventName: "roll-initiative-command" };
 		var xws = document.querySelector("x-websocket");
 		xws.send(submitInitiativeData);
-		this.initiativeSubmitted = !this.initiativeSubmitted;
+		this.justSubmitted = !this.justSubmitted;
 	  }
 	});
   </script>
