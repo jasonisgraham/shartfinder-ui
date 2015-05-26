@@ -15,11 +15,12 @@
 
 (def users (atom (db/get-all-users)))
 (def clients (atom {}))
-(def combatants (atom []))
+(def combatants (atom #{}))
 (def encounter-id (atom nil))
 (def initiative-rolls (atom #{}))
 (def round-info (atom {}))
 (def turn-info (atom {}))
+(def ordered-combatants (atom []))
 
 (defn initiative-created? []
   "FIXME: i dont want to ping initiative service for this info do i?"
@@ -55,6 +56,7 @@
     :initiativeRolls @initiative-rolls
     :roundStatus {:round @round-info
                   :turn @turn-info}
+    :orderedCombatants @ordered-combatants
     :commonCombatants [{:combatantName "Fedortyutin"}
                        {:combatantName "Silverballs"}
                        {:combatantName "Krug"}
@@ -119,6 +121,7 @@
 
 (defn- handle-initiative-created-reponse [initiative-created-payload]
   (println "initiative-created-payload: " (generate-string initiative-created-payload))
+  ;; (reset! ordered-combatants (initiative-created-payload))
   (ws-send-to-clients "initiative-created" (generate-string initiative-created-payload)))
 
 (defn handle-start-encounter-command [_]
@@ -211,9 +214,10 @@
   :allowed-methods [:get]
   :available-media-types ["application/json"]
   :handle-ok (do (reset! users (db/get-all-users))
-                 (reset! combatants [])
+                 (reset! combatants #{})
                  (reset! encounter-id nil)
                  (reset! initiative-rolls #{})
+                 (reset! ordered-combatants [])
                  (reset! round-info {})
                  (reset! turn-info {})
                  (wcar* (car/publish (:encounter-created channels)
